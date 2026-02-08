@@ -62,12 +62,12 @@ const Index = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
           >
-            <Link to="/onboarding">
+            <Link to="/auth">
               <Button size="lg" variant="secondary" className="min-w-[200px] text-base font-semibold">
                 Start Free (1-Week Access)
               </Button>
             </Link>
-            <Link to="/onboarding">
+            <Link to="/auth">
               <Button size="lg" variant="outline" className="min-w-[200px] border-primary-foreground/30 text-base font-semibold text-primary-foreground hover:bg-primary-foreground/10">
                 Join Paid Program
               </Button>

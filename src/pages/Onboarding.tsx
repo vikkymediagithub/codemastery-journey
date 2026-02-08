@@ -7,30 +7,50 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Layout from "@/components/Layout";
 import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useOnboardingSubmit, type OnboardingData } from "@/hooks/useOnboardingSubmit";
 
-const steps = ["Personal Info", "Tech Background", "Commitment", "Discipline", "Access Type"];
+const steps = ["Personal Info", "Tech Background", "Commitment", "Discipline", "Enrollment"];
 
 const OnboardingPage = () => {
+  const { user } = useAuth();
+  const { submit } = useOnboardingSubmit();
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({
+  const [submitting, setSubmitting] = useState(false);
+
+  const [form, setForm] = useState<OnboardingData>({
     name: "",
-    email: "",
+    email: user?.email || "",
     country: "",
     experience: "",
-    languages: "",
-    hoursPerWeek: "",
+    device: "laptop",
+    internetQuality: "good",
+    hoursPerWeek: "5",
+    studyTime: "flexible",
+    learningGoal: "improvement",
     whyLearn: "",
-    canCommit: false,
+    followsDeadlines: false,
+    practicesConsistently: false,
+    openToFeedback: false,
+    learningTrack: "foundation",
+    learningMode: "self_paced",
     accessType: "free",
     agreeTerms: false,
   });
 
-  const update = (key: string, value: string | boolean) =>
+  const update = (key: keyof OnboardingData, value: string | boolean) =>
     setForm((f) => ({ ...f, [key]: value }));
 
   const next = () => setStep((s) => Math.min(s + 1, steps.length - 1));
   const prev = () => setStep((s) => Math.max(s - 1, 0));
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    const ok = await submit(form);
+    if (ok) setSubmitted(true);
+    setSubmitting(false);
+  };
 
   if (submitted) {
     return (
@@ -44,7 +64,9 @@ const OnboardingPage = () => {
             <CheckCircle2 className="mx-auto h-16 w-16 text-accent" />
             <h2 className="mt-6 font-display text-3xl font-bold text-foreground">Application Submitted</h2>
             <p className="mt-4 text-muted-foreground">
-              We'll review your application and get back to you shortly. Check your email for next steps.
+              {form.accessType === "free"
+                ? "Your 7-day free access is now active. Make the most of it!"
+                : "We'll review your application and get back to you shortly."}
             </p>
           </motion.div>
         </section>
@@ -88,119 +110,11 @@ const OnboardingPage = () => {
                   transition={{ duration: 0.25 }}
                   className="space-y-5"
                 >
-                  {step === 0 && (
-                    <>
-                      <div>
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input id="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Your full name" className="mt-1.5" />
-                      </div>
-                      <div>
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input id="email" type="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="you@example.com" className="mt-1.5" />
-                      </div>
-                      <div>
-                        <Label htmlFor="country">Country</Label>
-                        <Input id="country" value={form.country} onChange={(e) => update("country", e.target.value)} placeholder="Your country" className="mt-1.5" />
-                      </div>
-                    </>
-                  )}
-
-                  {step === 1 && (
-                    <>
-                      <div>
-                        <Label>Experience Level</Label>
-                        <Select value={form.experience} onValueChange={(v) => update("experience", v)}>
-                          <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select level" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">No experience</SelectItem>
-                            <SelectItem value="beginner">{"Beginner (< 6 months)"}</SelectItem>
-                            <SelectItem value="intermediate">Intermediate (6–24 months)</SelectItem>
-                            <SelectItem value="advanced">Advanced (2+ years)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="languages">Languages / Technologies</Label>
-                        <Input id="languages" value={form.languages} onChange={(e) => update("languages", e.target.value)} placeholder="e.g. HTML, CSS, JavaScript" className="mt-1.5" />
-                      </div>
-                    </>
-                  )}
-
-                  {step === 2 && (
-                    <>
-                      <div>
-                        <Label>Hours per week you can dedicate</Label>
-                        <Select value={form.hoursPerWeek} onValueChange={(v) => update("hoursPerWeek", v)}>
-                          <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select hours" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="5">5 hours/week</SelectItem>
-                            <SelectItem value="10">10 hours/week</SelectItem>
-                            <SelectItem value="20">20 hours/week</SelectItem>
-                            <SelectItem value="40">40+ hours/week (full-time)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="whyLearn">Why do you want to learn coding?</Label>
-                        <textarea
-                          id="whyLearn"
-                          value={form.whyLearn}
-                          onChange={(e) => update("whyLearn", e.target.value)}
-                          placeholder="Tell us your motivation..."
-                          rows={4}
-                          className="mt-1.5 flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {step === 3 && (
-                    <div className="space-y-4">
-                      <p className="text-sm text-muted-foreground">
-                        Coding requires discipline. Confirm that you understand:
-                      </p>
-                      <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-3 text-sm text-foreground">
-                        <p>• You will need to dedicate consistent hours each week.</p>
-                        <p>• Progress depends on your effort and discipline.</p>
-                        <p>• This program is not a shortcut — it's a structured path.</p>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Checkbox
-                          id="canCommit"
-                          checked={form.canCommit}
-                          onCheckedChange={(c) => update("canCommit", !!c)}
-                        />
-                        <Label htmlFor="canCommit" className="text-sm leading-relaxed cursor-pointer">
-                          I understand and commit to putting in the work.
-                        </Label>
-                      </div>
-                    </div>
-                  )}
-
-                  {step === 4 && (
-                    <div className="space-y-5">
-                      <div>
-                        <Label>Access Type</Label>
-                        <Select value={form.accessType} onValueChange={(v) => update("accessType", v)}>
-                          <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="free">Free (1-Week Access)</SelectItem>
-                            <SelectItem value="paid">Paid Program</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Checkbox
-                          id="agreeTerms"
-                          checked={form.agreeTerms}
-                          onCheckedChange={(c) => update("agreeTerms", !!c)}
-                        />
-                        <Label htmlFor="agreeTerms" className="text-sm leading-relaxed cursor-pointer">
-                          I understand free access lasts 7 days and continued learning requires payment.
-                        </Label>
-                      </div>
-                    </div>
-                  )}
+                  {step === 0 && <StepPersonalInfo form={form} update={update} />}
+                  {step === 1 && <StepTechBackground form={form} update={update} />}
+                  {step === 2 && <StepCommitment form={form} update={update} />}
+                  {step === 3 && <StepDiscipline form={form} update={update} />}
+                  {step === 4 && <StepEnrollment form={form} update={update} />}
                 </motion.div>
               </AnimatePresence>
 
@@ -216,10 +130,10 @@ const OnboardingPage = () => {
                 ) : (
                   <Button
                     variant="secondary"
-                    disabled={!form.agreeTerms}
-                    onClick={() => setSubmitted(true)}
+                    disabled={!form.agreeTerms || submitting}
+                    onClick={handleSubmit}
                   >
-                    Submit Application
+                    {submitting ? "Submitting…" : "Submit Application"}
                   </Button>
                 )}
               </div>
@@ -230,5 +144,196 @@ const OnboardingPage = () => {
     </Layout>
   );
 };
+
+/* ── Step Components ── */
+
+interface StepProps {
+  form: OnboardingData;
+  update: (key: keyof OnboardingData, value: string | boolean) => void;
+}
+
+const StepPersonalInfo = ({ form, update }: StepProps) => (
+  <>
+    <div>
+      <Label htmlFor="name">Full Name</Label>
+      <Input id="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Your full name" className="mt-1.5" />
+    </div>
+    <div>
+      <Label htmlFor="email">Email Address</Label>
+      <Input id="email" type="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="you@example.com" className="mt-1.5" />
+    </div>
+    <div>
+      <Label htmlFor="country">Country</Label>
+      <Input id="country" value={form.country} onChange={(e) => update("country", e.target.value)} placeholder="Your country" className="mt-1.5" />
+    </div>
+  </>
+);
+
+const StepTechBackground = ({ form, update }: StepProps) => (
+  <>
+    <div>
+      <Label>Experience Level</Label>
+      <Select value={form.experience} onValueChange={(v) => update("experience", v)}>
+        <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select level" /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">No experience</SelectItem>
+          <SelectItem value="beginner">{"Beginner (< 6 months)"}</SelectItem>
+          <SelectItem value="intermediate">Intermediate (6+ months)</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+    <div>
+      <Label>Primary Device</Label>
+      <Select value={form.device} onValueChange={(v) => update("device", v)}>
+        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="laptop">Laptop / Desktop</SelectItem>
+          <SelectItem value="mobile">Mobile Phone</SelectItem>
+          <SelectItem value="both">Both</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+    <div>
+      <Label>Internet Quality</Label>
+      <Select value={form.internetQuality} onValueChange={(v) => update("internetQuality", v)}>
+        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="poor">Poor</SelectItem>
+          <SelectItem value="fair">Fair</SelectItem>
+          <SelectItem value="good">Good</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  </>
+);
+
+const StepCommitment = ({ form, update }: StepProps) => (
+  <>
+    <div>
+      <Label>Hours per week you can dedicate</Label>
+      <Select value={form.hoursPerWeek} onValueChange={(v) => update("hoursPerWeek", v)}>
+        <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select hours" /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="5">5 hours/week</SelectItem>
+          <SelectItem value="10">10 hours/week</SelectItem>
+          <SelectItem value="20">20 hours/week</SelectItem>
+          <SelectItem value="40">40+ hours/week</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+    <div>
+      <Label>Preferred Study Time</Label>
+      <Select value={form.studyTime} onValueChange={(v) => update("studyTime", v)}>
+        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="morning">Morning</SelectItem>
+          <SelectItem value="afternoon">Afternoon</SelectItem>
+          <SelectItem value="night">Night</SelectItem>
+          <SelectItem value="flexible">Flexible</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+    <div>
+      <Label>Learning Goal</Label>
+      <Select value={form.learningGoal} onValueChange={(v) => update("learningGoal", v)}>
+        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="job">Get a Job</SelectItem>
+          <SelectItem value="freelancing">Freelancing</SelectItem>
+          <SelectItem value="projects">Build Projects</SelectItem>
+          <SelectItem value="improvement">Self Improvement</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+    <div>
+      <Label htmlFor="whyLearn">Why do you want to learn coding?</Label>
+      <textarea
+        id="whyLearn"
+        value={form.whyLearn}
+        onChange={(e) => update("whyLearn", e.target.value)}
+        placeholder="Tell us your motivation..."
+        rows={4}
+        className="mt-1.5 flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      />
+    </div>
+  </>
+);
+
+const StepDiscipline = ({ form, update }: StepProps) => (
+  <div className="space-y-4">
+    <p className="text-sm text-muted-foreground">
+      Coding requires discipline. Confirm that you understand:
+    </p>
+    <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-3 text-sm text-foreground">
+      <p>• You will need to dedicate consistent hours each week.</p>
+      <p>• Progress depends on your effort and discipline.</p>
+      <p>• This program is not a shortcut — it's a structured path.</p>
+    </div>
+    <div className="flex items-start gap-3">
+      <Checkbox id="followsDeadlines" checked={form.followsDeadlines} onCheckedChange={(c) => update("followsDeadlines", !!c)} />
+      <Label htmlFor="followsDeadlines" className="text-sm leading-relaxed cursor-pointer">
+        I commit to following deadlines and schedules.
+      </Label>
+    </div>
+    <div className="flex items-start gap-3">
+      <Checkbox id="practicesConsistently" checked={form.practicesConsistently} onCheckedChange={(c) => update("practicesConsistently", !!c)} />
+      <Label htmlFor="practicesConsistently" className="text-sm leading-relaxed cursor-pointer">
+        I will practice consistently, not just when convenient.
+      </Label>
+    </div>
+    <div className="flex items-start gap-3">
+      <Checkbox id="openToFeedback" checked={form.openToFeedback} onCheckedChange={(c) => update("openToFeedback", !!c)} />
+      <Label htmlFor="openToFeedback" className="text-sm leading-relaxed cursor-pointer">
+        I am open to feedback and willing to improve.
+      </Label>
+    </div>
+  </div>
+);
+
+const StepEnrollment = ({ form, update }: StepProps) => (
+  <div className="space-y-5">
+    <div>
+      <Label>Learning Track</Label>
+      <Select value={form.learningTrack} onValueChange={(v) => update("learningTrack", v)}>
+        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="foundation">Beginner Foundation</SelectItem>
+          <SelectItem value="frontend">Frontend Development</SelectItem>
+          <SelectItem value="backend">Backend Development</SelectItem>
+          <SelectItem value="fullstack">Full-Stack Development</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+    <div>
+      <Label>Learning Mode</Label>
+      <Select value={form.learningMode} onValueChange={(v) => update("learningMode", v)}>
+        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="self_paced">Self-Paced</SelectItem>
+          <SelectItem value="live">Live Instructor-Led</SelectItem>
+          <SelectItem value="mentorship">Mentorship</SelectItem>
+          <SelectItem value="project">Project-Based</SelectItem>
+          <SelectItem value="hybrid">Hybrid</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+    <div>
+      <Label>Access Type</Label>
+      <Select value={form.accessType} onValueChange={(v) => update("accessType", v)}>
+        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="free">Free (7-Day Access)</SelectItem>
+          <SelectItem value="paid">Paid Program</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+    <div className="flex items-start gap-3">
+      <Checkbox id="agreeTerms" checked={form.agreeTerms} onCheckedChange={(c) => update("agreeTerms", !!c)} />
+      <Label htmlFor="agreeTerms" className="text-sm leading-relaxed cursor-pointer">
+        I understand that free access lasts 7 days and continued learning requires payment. This training is provided by an independent coding educator. Certificates issued are non-accredited and for portfolio demonstration only.
+      </Label>
+    </div>
+  </div>
+);
 
 export default OnboardingPage;

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -12,6 +13,13 @@ const navLinks = [
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-card/80 backdrop-blur-lg">
@@ -33,11 +41,24 @@ const Navbar = () => {
               {l.label}
             </Link>
           ))}
-          <Link to="/onboarding">
-            <Button size="sm" variant="secondary">
-              Start Free
-            </Button>
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <Link to="/onboarding">
+                <Button size="sm" variant="secondary">
+                  Dashboard
+                </Button>
+              </Link>
+              <Button size="sm" variant="ghost" onClick={handleSignOut} className="gap-1">
+                <LogOut className="h-4 w-4" /> Sign Out
+              </Button>
+            </div>
+          ) : (
+            <Link to="/auth">
+              <Button size="sm" variant="secondary">
+                Start Free
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -62,11 +83,24 @@ const Navbar = () => {
                 {l.label}
               </Link>
             ))}
-            <Link to="/onboarding" onClick={() => setOpen(false)}>
-              <Button size="sm" variant="secondary" className="w-full">
-                Start Free
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to="/onboarding" onClick={() => setOpen(false)}>
+                  <Button size="sm" variant="secondary" className="w-full">
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button size="sm" variant="ghost" onClick={() => { handleSignOut(); setOpen(false); }} className="w-full gap-1">
+                  <LogOut className="h-4 w-4" /> Sign Out
+                </Button>
+              </>
+            ) : (
+              <Link to="/auth" onClick={() => setOpen(false)}>
+                <Button size="sm" variant="secondary" className="w-full">
+                  Start Free
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       )}
