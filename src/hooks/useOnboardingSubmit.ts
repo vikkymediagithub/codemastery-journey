@@ -80,12 +80,15 @@ export const useOnboardingSubmit = () => {
         ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         : null;
 
+      // Free users get auto-approved; paid users start locked pending admin review
+      const enrollmentStatus = isFree ? "active" : "locked";
+
       const { error: enrollErr } = await supabase.from("enrollments").insert({
         user_id: user.id,
         learning_track: (data.learningTrack || "foundation") as "frontend" | "backend" | "fullstack" | "foundation",
         learning_mode: (data.learningMode || "self_paced") as "self_paced" | "live" | "mentorship" | "project" | "hybrid",
         access_type: (data.accessType || "free") as "free" | "paid",
-        status: "active" as const,
+        status: enrollmentStatus,
         free_expires_at: freeExpiresAt,
       });
       if (enrollErr) throw enrollErr;

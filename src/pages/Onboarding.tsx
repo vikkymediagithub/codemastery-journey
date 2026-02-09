@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ const steps = ["Personal Info", "Tech Background", "Commitment", "Discipline", "
 const OnboardingPage = () => {
   const { user } = useAuth();
   const { submit } = useOnboardingSubmit();
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -68,6 +70,13 @@ const OnboardingPage = () => {
                 ? "Your 7-day free access is now active. Make the most of it!"
                 : "We'll review your application and get back to you shortly."}
             </p>
+            <Button
+              variant="secondary"
+              className="mt-6"
+              onClick={() => navigate("/dashboard")}
+            >
+              Go to Dashboard
+            </Button>
           </motion.div>
         </section>
       </Layout>

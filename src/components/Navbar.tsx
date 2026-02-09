@@ -43,7 +43,7 @@ const Navbar = () => {
           ))}
           {user ? (
             <div className="flex items-center gap-3">
-              <Link to="/onboarding">
+              <Link to="/dashboard">
                 <Button size="sm" variant="secondary">
                   Dashboard
                 </Button>
@@ -85,7 +85,7 @@ const Navbar = () => {
             ))}
             {user ? (
               <>
-                <Link to="/onboarding" onClick={() => setOpen(false)}>
+                <Link to="/dashboard" onClick={() => setOpen(false)}>
                   <Button size="sm" variant="secondary" className="w-full">
                     Dashboard
                   </Button>
