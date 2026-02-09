@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 
@@ -15,8 +16,22 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { signUp, signIn } = useAuth();
+  const { user, signUp, signIn } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect authenticated users
+  useEffect(() => {
+    if (!user) return;
+    const checkEnrollment = async () => {
+      const { data } = await supabase
+        .from("enrollments")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      navigate(data ? "/dashboard" : "/onboarding", { replace: true });
+    };
+    checkEnrollment();
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +54,7 @@ const AuthPage = () => {
       if (error) {
         toast({ title: "Login failed", description: error.message, variant: "destructive" });
       } else {
-        navigate("/onboarding");
+        navigate("/dashboard");
       }
     } else {
       const { error } = await signUp(email, password);
