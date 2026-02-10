@@ -68,7 +68,7 @@ const Index = () => {
               </Button>
             </Link>
             <Link to="/auth">
-              <Button size="lg" variant="outline" className="min-w-[200px] border-primary-foreground/30 text-base font-semibold text-primary-foreground hover:bg-primary-foreground/10">
+              <Button size="lg" variant="outline" className="min-w-[200px] border-primary-foreground/30 text-base font-semibold hover:bg-primary-foreground/10">
                 Join Paid Program
               </Button>
             </Link>
