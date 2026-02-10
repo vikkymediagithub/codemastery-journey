@@ -1,8 +1,10 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import { useLearnerData } from "@/hooks/useLearnerData";
 import { useAuth } from "@/hooks/useAuth";
+import { usePayment } from "@/hooks/usePayment";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +21,7 @@ import {
   User,
   Globe,
   Zap,
+  CreditCard,
 } from "lucide-react";
 
 const fadeUp = {
@@ -32,8 +35,27 @@ const fadeUp = {
 
 const DashboardPage = () => {
   const { user } = useAuth();
-  const { profile, enrollment, techBackground, commitment, loading, isExpired, daysRemaining } =
+  const { profile, enrollment, techBackground, commitment, loading, isExpired, daysRemaining, refetch } =
     useLearnerData();
+  const { initializePayment, verifyPayment, loading: paymentLoading, amount } = usePayment();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Handle Paystack callback redirect
+  useEffect(() => {
+    const shouldVerify = searchParams.get("verify_payment");
+    const reference = searchParams.get("reference") || searchParams.get("trxref");
+    if (shouldVerify && reference) {
+      // Clean URL
+      searchParams.delete("verify_payment");
+      searchParams.delete("reference");
+      searchParams.delete("trxref");
+      setSearchParams(searchParams, { replace: true });
+      // Verify payment
+      verifyPayment(reference).then((ok) => {
+        if (ok) refetch();
+      });
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -90,10 +112,20 @@ const DashboardPage = () => {
             >
               <Clock className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
               <div>
-                <p className="font-medium text-amber-800 dark:text-amber-400">Application Under Review</p>
+                <p className="font-medium text-amber-800 dark:text-amber-400">Payment Required</p>
                 <p className="mt-1 text-sm text-amber-700 dark:text-amber-500">
-                  Your paid program application is being reviewed. You'll get full access once approved.
+                  Complete your payment of ₦{amount.toLocaleString()} to activate your account and unlock all features.
                 </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="mt-3 gap-1.5"
+                  disabled={paymentLoading}
+                  onClick={initializePayment}
+                >
+                  <CreditCard className="h-4 w-4" />
+                  {paymentLoading ? "Processing…" : `Pay ₦${amount.toLocaleString()}`}
+                </Button>
               </div>
             </motion.div>
           )}
@@ -110,8 +142,15 @@ const DashboardPage = () => {
                 <p className="mt-1 text-sm text-muted-foreground">
                   Your 7-day free access has ended. Upgrade to the paid program to continue learning.
                 </p>
-                <Button variant="secondary" size="sm" className="mt-3">
-                  Upgrade to Paid
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="mt-3 gap-1.5"
+                  disabled={paymentLoading}
+                  onClick={initializePayment}
+                >
+                  <CreditCard className="h-4 w-4" />
+                  {paymentLoading ? "Processing…" : `Upgrade — ₦${amount.toLocaleString()}`}
                 </Button>
               </div>
             </motion.div>
