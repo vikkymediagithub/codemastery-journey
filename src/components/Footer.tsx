@@ -30,7 +30,7 @@ const Footer = () => (
 
         <div>
           <h4 className="mb-3 text-sm font-semibold uppercase tracking-wider opacity-60">Contact</h4>
-          <p className="text-sm opacity-80">support@codemastery.com</p>
+          <p className="text-sm opacity-80">vikkymediatechnologies@gmail.com</p>
         </div>
       </div>
 
