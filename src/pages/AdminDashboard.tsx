@@ -42,6 +42,9 @@ import {
   UserCheck,
   UserX,
   CheckSquare,
+  GraduationCap,
+  Sparkles,
+  DollarSign,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -50,23 +53,32 @@ const AdminDashboard = () => {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [accessFilter, setAccessFilter] = useState<string>("all");
   const [trackFilter, setTrackFilter] = useState<string>("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [detailLearner, setDetailLearner] = useState<LearnerRow | null>(null);
 
-  const filtered = useMemo(() => {
-    return learners.filter((l) => {
+  const paidLearners = useMemo(
+    () => learners.filter((l) => l.enrollment?.access_type === "paid"),
+    [learners]
+  );
+  const freeLearners = useMemo(
+    () => learners.filter((l) => l.enrollment?.access_type === "free"),
+    [learners]
+  );
+
+  const filterLearners = (list: LearnerRow[]) =>
+    list.filter((l) => {
       const matchSearch =
         !search ||
         l.profile.full_name.toLowerCase().includes(search.toLowerCase()) ||
         l.profile.email.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || l.enrollment?.status === statusFilter;
-      const matchAccess = accessFilter === "all" || l.enrollment?.access_type === accessFilter;
       const matchTrack = trackFilter === "all" || l.enrollment?.learning_track === trackFilter;
-      return matchSearch && matchStatus && matchAccess && matchTrack;
+      return matchSearch && matchStatus && matchTrack;
     });
-  }, [learners, search, statusFilter, accessFilter, trackFilter]);
+
+  const filteredPaid = useMemo(() => filterLearners(paidLearners), [paidLearners, search, statusFilter, trackFilter]);
+  const filteredFree = useMemo(() => filterLearners(freeLearners), [freeLearners, search, statusFilter, trackFilter]);
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -75,14 +87,6 @@ const AdminDashboard = () => {
       else next.add(id);
       return next;
     });
-  };
-
-  const toggleAll = () => {
-    if (selected.size === filtered.length) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(filtered.map((l) => l.enrollment?.id || l.profile.id)));
-    }
   };
 
   const handleBulkAction = async (action: "activate" | "lock") => {
@@ -100,7 +104,7 @@ const AdminDashboard = () => {
 
   const exportCSV = () => {
     const header = ["Name", "Email", "Country", "Track", "Mode", "Access", "Status", "Created"];
-    const rows = filtered.map((l) => [
+    const rows = learners.map((l) => [
       l.profile.full_name,
       l.profile.email,
       l.profile.country,
@@ -140,278 +144,135 @@ const AdminDashboard = () => {
     );
   }
 
+  const totalRevenue = learners
+    .filter((l) => l.payment?.status === "success")
+    .reduce((sum, l) => sum + (l.payment?.amount || 0), 0);
+
   return (
     <Layout>
-      <section className="py-10 bg-background">
+      <section className="py-8 bg-background min-h-screen">
         <div className="container mx-auto px-4">
-          {/* Header */}
-          <div className="mb-8 flex items-center gap-3">
-            <Shield className="h-7 w-7 text-accent" />
-            <div>
-              <h1 className="font-display text-3xl font-bold text-foreground">Admin Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Manage learners and monitor platform activity</p>
+          {/* Admin Header — distinct styling */}
+          <div className="mb-8 rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-6 text-primary-foreground shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-foreground/20">
+                <Shield className="h-6 w-6" />
+              </div>
+              <div>
+                <h1 className="font-display text-2xl font-bold">Admin Control Panel</h1>
+                <p className="text-sm opacity-80">Platform management & learner oversight</p>
+              </div>
+            </div>
+
+            {/* Stat pills */}
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              {[
+                { label: "Total", value: stats.total, icon: Users },
+                { label: "Active", value: stats.active, icon: UserCheck },
+                { label: "Locked", value: stats.locked, icon: UserX },
+                { label: "Paid", value: stats.paid, icon: CreditCard },
+                { label: "Free Trial", value: stats.free, icon: Sparkles },
+                { label: "Revenue", value: `₦${totalRevenue.toLocaleString()}`, icon: DollarSign },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="rounded-xl bg-primary-foreground/10 backdrop-blur-sm px-4 py-3"
+                >
+                  <div className="flex items-center gap-1.5 text-xs font-medium opacity-70">
+                    <s.icon className="h-3.5 w-3.5" /> {s.label}
+                  </div>
+                  <p className="mt-1 font-display text-xl font-bold">{s.value}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          <Tabs defaultValue="overview">
+          {/* Filters bar */}
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or email…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[130px]"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="locked">Locked</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={trackFilter} onValueChange={setTrackFilter}>
+              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Track" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tracks</SelectItem>
+                <SelectItem value="foundation">Foundation</SelectItem>
+                <SelectItem value="frontend">Frontend</SelectItem>
+                <SelectItem value="backend">Backend</SelectItem>
+                <SelectItem value="fullstack">Full-Stack</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1.5">
+              <Download className="h-4 w-4" /> Export
+            </Button>
+          </div>
+
+          {/* Bulk actions */}
+          {selected.size > 0 && (
+            <div className="mb-4 flex items-center gap-3 rounded-lg border border-accent/30 bg-accent/5 p-3">
+              <span className="text-sm font-medium text-foreground">{selected.size} selected</span>
+              <Button size="sm" variant="secondary" onClick={() => handleBulkAction("activate")} className="gap-1">
+                <Unlock className="h-3.5 w-3.5" /> Activate
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => handleBulkAction("lock")} className="gap-1">
+                <Lock className="h-3.5 w-3.5" /> Lock
+              </Button>
+            </div>
+          )}
+
+          {/* Tabs: Paid Students | Free Trial | Payments */}
+          <Tabs defaultValue="paid">
             <TabsList className="mb-6">
-              <TabsTrigger value="overview" className="gap-1.5">
-                <BarChart3 className="h-4 w-4" /> Overview
+              <TabsTrigger value="paid" className="gap-1.5">
+                <CreditCard className="h-4 w-4" /> Paid Students ({filteredPaid.length})
               </TabsTrigger>
-              <TabsTrigger value="learners" className="gap-1.5">
-                <Users className="h-4 w-4" /> Learners
+              <TabsTrigger value="free" className="gap-1.5">
+                <Sparkles className="h-4 w-4" /> Free Trial ({filteredFree.length})
               </TabsTrigger>
               <TabsTrigger value="payments" className="gap-1.5">
-                <CreditCard className="h-4 w-4" /> Payments
+                <DollarSign className="h-4 w-4" /> Payments
               </TabsTrigger>
             </TabsList>
 
-            {/* ── Overview Tab ── */}
-            <TabsContent value="overview">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                {[
-                  { icon: Users, label: "Total Learners", value: stats.total, color: "text-accent" },
-                  { icon: UserCheck, label: "Active", value: stats.active, color: "text-green-500" },
-                  { icon: UserX, label: "Locked", value: stats.locked, color: "text-amber-500" },
-                  { icon: TrendingUp, label: "Free Users", value: stats.free, color: "text-blue-500" },
-                  { icon: CreditCard, label: "Paid Users", value: stats.paid, color: "text-purple-500" },
-                ].map((s, i) => (
-                  <motion.div
-                    key={s.label}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06 }}
-                    className="rounded-xl border border-border bg-card p-5 shadow-sm"
-                  >
-                    <div className="flex items-center gap-2">
-                      <s.icon className={`h-5 w-5 ${s.color}`} />
-                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        {s.label}
-                      </span>
-                    </div>
-                    <p className="mt-2 font-display text-2xl font-bold text-foreground">{s.value}</p>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Recent Applications */}
-              <div className="mt-8">
-                <h3 className="font-display text-lg font-semibold text-foreground mb-4">
-                  Recent Applications
-                </h3>
-                <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Track</TableHead>
-                        <TableHead>Access</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {learners.slice(0, 5).map((l) => (
-                        <TableRow
-                          key={l.profile.id}
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => setDetailLearner(l)}
-                        >
-                          <TableCell className="font-medium">{l.profile.full_name}</TableCell>
-                          <TableCell>{formatTrack(l.enrollment?.learning_track)}</TableCell>
-                          <TableCell>
-                            <Badge variant={l.enrollment?.access_type === "paid" ? "default" : "secondary"}>
-                              {l.enrollment?.access_type || "—"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge status={l.enrollment?.status} />
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">
-                            {l.profile.created_at?.split("T")[0]}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {learners.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                            No learners yet
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
+            {/* Paid Students */}
+            <TabsContent value="paid">
+              <LearnerTable
+                learners={filteredPaid}
+                selected={selected}
+                toggleSelect={toggleSelect}
+                onView={setDetailLearner}
+                updateEnrollmentStatus={updateEnrollmentStatus}
+                showTrack
+              />
             </TabsContent>
 
-            {/* ── Learners Tab ── */}
-            <TabsContent value="learners">
-              {/* Filters */}
-              <div className="flex flex-wrap items-center gap-3 mb-4">
-                <div className="relative flex-1 min-w-[200px]">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by name or email…"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[130px]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="locked">Locked</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={accessFilter} onValueChange={setAccessFilter}>
-                  <SelectTrigger className="w-[130px]">
-                    <SelectValue placeholder="Access" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Access</SelectItem>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={trackFilter} onValueChange={setTrackFilter}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Track" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Tracks</SelectItem>
-                    <SelectItem value="foundation">Foundation</SelectItem>
-                    <SelectItem value="frontend">Frontend</SelectItem>
-                    <SelectItem value="backend">Backend</SelectItem>
-                    <SelectItem value="fullstack">Full-Stack</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1.5">
-                  <Download className="h-4 w-4" /> Export CSV
-                </Button>
-              </div>
-
-              {/* Bulk Actions */}
-              {selected.size > 0 && (
-                <div className="mb-4 flex items-center gap-3 rounded-lg border border-accent/30 bg-accent/5 p-3">
-                  <span className="text-sm font-medium text-foreground">
-                    {selected.size} selected
-                  </span>
-                  <Button size="sm" variant="secondary" onClick={() => handleBulkAction("activate")} className="gap-1">
-                    <Unlock className="h-3.5 w-3.5" /> Activate
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => handleBulkAction("lock")} className="gap-1">
-                    <Lock className="h-3.5 w-3.5" /> Lock
-                  </Button>
-                </div>
-              )}
-
-              {/* Table */}
-              <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-10">
-                        <button onClick={toggleAll} className="p-1">
-                          <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                        </button>
-                      </TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Track</TableHead>
-                      <TableHead>Access</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.map((l) => {
-                      const id = l.enrollment?.id || l.profile.id;
-                      return (
-                        <TableRow key={l.profile.id}>
-                          <TableCell>
-                            <input
-                              type="checkbox"
-                              checked={selected.has(id)}
-                              onChange={() => toggleSelect(id)}
-                              className="h-4 w-4 rounded border-input"
-                            />
-                          </TableCell>
-                          <TableCell className="font-medium">{l.profile.full_name}</TableCell>
-                          <TableCell className="text-muted-foreground">{l.profile.email}</TableCell>
-                          <TableCell>{formatTrack(l.enrollment?.learning_track)}</TableCell>
-                          <TableCell>
-                            <Badge variant={l.enrollment?.access_type === "paid" ? "default" : "secondary"}>
-                              {l.enrollment?.access_type || "—"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge status={l.enrollment?.status} />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setDetailLearner(l)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              {l.enrollment?.status === "locked" ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={async () => {
-                                    if (l.enrollment) {
-                                      const ok = await updateEnrollmentStatus(l.enrollment.id, "active");
-                                      if (ok) toast({ title: `${l.profile.full_name} activated` });
-                                    }
-                                  }}
-                                  className="h-8 w-8 p-0 text-green-600"
-                                >
-                                  <Unlock className="h-4 w-4" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={async () => {
-                                    if (l.enrollment) {
-                                      const ok = await updateEnrollmentStatus(l.enrollment.id, "locked");
-                                      if (ok) toast({ title: `${l.profile.full_name} locked` });
-                                    }
-                                  }}
-                                  className="h-8 w-8 p-0 text-amber-500"
-                                >
-                                  <Lock className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                    {filtered.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                          No learners match your filters
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Showing {filtered.length} of {learners.length} learners
-              </p>
+            {/* Free Trial Students */}
+            <TabsContent value="free">
+              <LearnerTable
+                learners={filteredFree}
+                selected={selected}
+                toggleSelect={toggleSelect}
+                onView={setDetailLearner}
+                updateEnrollmentStatus={updateEnrollmentStatus}
+                showExpiry
+              />
             </TabsContent>
 
-            {/* ── Payments Tab ── */}
+            {/* Payments */}
             <TabsContent value="payments">
               <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
                 <Table>
@@ -419,8 +280,6 @@ const AdminDashboard = () => {
                     <TableRow>
                       <TableHead>Learner</TableHead>
                       <TableHead>Amount</TableHead>
-                      <TableHead>Currency</TableHead>
-                      <TableHead>Provider</TableHead>
                       <TableHead>Reference</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Date</TableHead>
@@ -432,9 +291,7 @@ const AdminDashboard = () => {
                       .map((l) => (
                         <TableRow key={l.payment!.id}>
                           <TableCell className="font-medium">{l.profile.full_name}</TableCell>
-                          <TableCell>{l.payment!.amount.toLocaleString()}</TableCell>
-                          <TableCell>{l.payment!.currency}</TableCell>
-                          <TableCell>{l.payment!.provider}</TableCell>
+                          <TableCell>₦{l.payment!.amount.toLocaleString()}</TableCell>
                           <TableCell className="font-mono text-xs">{l.payment!.reference}</TableCell>
                           <TableCell>
                             <Badge
@@ -456,7 +313,7 @@ const AdminDashboard = () => {
                       ))}
                     {learners.filter((l) => l.payment).length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                           No payments recorded yet
                         </TableCell>
                       </TableRow>
@@ -473,28 +330,136 @@ const AdminDashboard = () => {
       <LearnerDetailDialog
         learner={detailLearner}
         onClose={() => setDetailLearner(null)}
-        onActivate={async () => {
-          if (detailLearner?.enrollment) {
-            const ok = await updateEnrollmentStatus(detailLearner.enrollment.id, "active");
-            if (ok) {
-              toast({ title: `${detailLearner.profile.full_name} activated` });
-              setDetailLearner(null);
-            }
-          }
-        }}
-        onLock={async () => {
-          if (detailLearner?.enrollment) {
-            const ok = await updateEnrollmentStatus(detailLearner.enrollment.id, "locked");
-            if (ok) {
-              toast({ title: `${detailLearner.profile.full_name} locked` });
-              setDetailLearner(null);
-            }
-          }
-        }}
+        updateEnrollmentStatus={updateEnrollmentStatus}
+        updateAccessType={updateAccessType}
       />
     </Layout>
   );
 };
+
+/* ── Reusable Learner Table ── */
+
+interface LearnerTableProps {
+  learners: LearnerRow[];
+  selected: Set<string>;
+  toggleSelect: (id: string) => void;
+  onView: (l: LearnerRow) => void;
+  updateEnrollmentStatus: (id: string, status: "active" | "locked") => Promise<boolean>;
+  showTrack?: boolean;
+  showExpiry?: boolean;
+}
+
+const LearnerTable = ({
+  learners,
+  selected,
+  toggleSelect,
+  onView,
+  updateEnrollmentStatus,
+  showTrack,
+  showExpiry,
+}: LearnerTableProps) => (
+  <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-10">
+            <CheckSquare className="h-4 w-4 text-muted-foreground" />
+          </TableHead>
+          <TableHead>Name</TableHead>
+          <TableHead>Email</TableHead>
+          {showTrack && <TableHead>Track</TableHead>}
+          <TableHead>Mode</TableHead>
+          <TableHead>Status</TableHead>
+          {showExpiry && <TableHead>Expires</TableHead>}
+          <TableHead>Joined</TableHead>
+          <TableHead>Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {learners.map((l) => {
+          const id = l.enrollment?.id || l.profile.id;
+          const expiry = l.enrollment?.free_expires_at;
+          const expired = expiry ? new Date(expiry) < new Date() : false;
+          return (
+            <TableRow key={l.profile.id}>
+              <TableCell>
+                <input
+                  type="checkbox"
+                  checked={selected.has(id)}
+                  onChange={() => toggleSelect(id)}
+                  className="h-4 w-4 rounded border-input"
+                />
+              </TableCell>
+              <TableCell className="font-medium">{l.profile.full_name}</TableCell>
+              <TableCell className="text-muted-foreground text-sm">{l.profile.email}</TableCell>
+              {showTrack && <TableCell>{formatTrack(l.enrollment?.learning_track)}</TableCell>}
+              <TableCell>{formatMode(l.enrollment?.learning_mode)}</TableCell>
+              <TableCell><StatusBadge status={l.enrollment?.status} /></TableCell>
+              {showExpiry && (
+                <TableCell>
+                  {expiry ? (
+                    <span className={`text-sm ${expired ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                      {expired ? "Expired" : expiry.split("T")[0]}
+                    </span>
+                  ) : "—"}
+                </TableCell>
+              )}
+              <TableCell className="text-muted-foreground text-sm">
+                {l.profile.created_at?.split("T")[0]}
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="sm" onClick={() => onView(l)} className="h-8 w-8 p-0">
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  {l.enrollment?.status === "locked" ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        if (l.enrollment) {
+                          const ok = await updateEnrollmentStatus(l.enrollment.id, "active");
+                          if (ok) toast({ title: `${l.profile.full_name} activated` });
+                        }
+                      }}
+                      className="h-8 w-8 p-0 text-green-600"
+                    >
+                      <Unlock className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        if (l.enrollment) {
+                          const ok = await updateEnrollmentStatus(l.enrollment.id, "locked");
+                          if (ok) toast({ title: `${l.profile.full_name} locked` });
+                        }
+                      }}
+                      className="h-8 w-8 p-0 text-amber-500"
+                    >
+                      <Lock className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+        {learners.length === 0 && (
+          <TableRow>
+            <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+              No learners in this category
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+    <p className="px-4 py-2 text-xs text-muted-foreground">
+      {learners.length} learner{learners.length !== 1 ? "s" : ""}
+    </p>
+  </div>
+);
 
 /* ── Sub-components ── */
 
@@ -515,13 +480,13 @@ const StatusBadge = ({ status }: { status?: string }) => {
 const LearnerDetailDialog = ({
   learner,
   onClose,
-  onActivate,
-  onLock,
+  updateEnrollmentStatus,
+  updateAccessType,
 }: {
   learner: LearnerRow | null;
   onClose: () => void;
-  onActivate: () => void;
-  onLock: () => void;
+  updateEnrollmentStatus: (id: string, status: "active" | "locked") => Promise<boolean>;
+  updateAccessType: (id: string, accessType: "free" | "paid") => Promise<boolean>;
 }) => {
   if (!learner) return null;
   const { profile, enrollment, payment } = learner;
@@ -552,7 +517,7 @@ const LearnerDetailDialog = ({
                 Payment
               </p>
               <div className="grid grid-cols-2 gap-2">
-                <DetailField label="Amount" value={`${payment.amount} ${payment.currency}`} />
+                <DetailField label="Amount" value={`₦${payment.amount.toLocaleString()} ${payment.currency}`} />
                 <DetailField label="Status" value={payment.status} />
                 <DetailField label="Ref" value={payment.reference} />
                 <DetailField label="Provider" value={payment.provider} />
@@ -560,14 +525,49 @@ const LearnerDetailDialog = ({
             </div>
           )}
 
-          <div className="flex gap-2 pt-2">
+          <div className="flex flex-wrap gap-2 pt-2">
             {enrollment?.status === "locked" ? (
-              <Button size="sm" variant="secondary" onClick={onActivate} className="gap-1">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={async () => {
+                  if (enrollment) {
+                    const ok = await updateEnrollmentStatus(enrollment.id, "active");
+                    if (ok) { toast({ title: `${profile.full_name} activated` }); onClose(); }
+                  }
+                }}
+                className="gap-1"
+              >
                 <Unlock className="h-4 w-4" /> Approve & Activate
               </Button>
             ) : (
-              <Button size="sm" variant="outline" onClick={onLock} className="gap-1">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  if (enrollment) {
+                    const ok = await updateEnrollmentStatus(enrollment.id, "locked");
+                    if (ok) { toast({ title: `${profile.full_name} locked` }); onClose(); }
+                  }
+                }}
+                className="gap-1"
+              >
                 <Lock className="h-4 w-4" /> Lock Account
+              </Button>
+            )}
+            {enrollment?.access_type === "free" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  if (enrollment) {
+                    const ok = await updateAccessType(enrollment.id, "paid");
+                    if (ok) { toast({ title: `${profile.full_name} upgraded to paid` }); onClose(); }
+                  }
+                }}
+                className="gap-1"
+              >
+                <CreditCard className="h-4 w-4" /> Upgrade to Paid
               </Button>
             )}
           </div>
