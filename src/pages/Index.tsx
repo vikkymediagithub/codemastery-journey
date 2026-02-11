@@ -1,7 +1,20 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Code2, Server, Layers, Lightbulb, BookOpen, Users, Rocket, Handshake, CheckCircle2 } from "lucide-react";
+import {
+  Code2,
+  Server,
+  Layers,
+  Lightbulb,
+  BookOpen,
+  Users,
+  Rocket,
+  Handshake,
+  CheckCircle2,
+  Star,
+  Award,
+  Briefcase,
+} from "lucide-react";
 import Layout from "@/components/Layout";
 import heroBg from "@/assets/hero-bg.jpg";
 import founderAvatar from "@/assets/founder-avatar.jpg";
@@ -48,6 +61,7 @@ const Index = () => {
             <br />
             <span className="text-gradient">Guidance, and Real Projects.</span>
           </motion.h1>
+
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -56,6 +70,7 @@ const Index = () => {
           >
             Stop wandering. Choose your path, prove your discipline, and become a developer.
           </motion.p>
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -67,8 +82,13 @@ const Index = () => {
                 Start Free (1-Week Access)
               </Button>
             </Link>
+
             <Link to="/auth">
-              <Button size="lg" variant="outline" className="min-w-[200px] border-primary-foreground/30 text-base font-semibold hover:bg-primary-foreground/10">
+              <Button
+                size="lg"
+                variant="outline"
+                className="min-w-[200px] border-primary-foreground/30 text-base font-semibold hover:bg-primary-foreground/10"
+              >
                 Join Paid Program
               </Button>
             </Link>
@@ -76,36 +96,104 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Founder */}
-      <section className="py-20 bg-card">
+      {/* ========================= */}
+      {/* Enhanced Founder Section */}
+      {/* ========================= */}
+
+      <section className="py-24 bg-card">
         <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-widest text-accent">Independent Educator</p>
-            <h2 className="mt-2 font-display text-3xl font-bold text-foreground sm:text-4xl">
-              Meet Your Mentor
-            </h2>
-            <div className="mt-8 flex flex-col items-center gap-8 md:flex-row md:items-start">
-              <img
-                src={founderAvatar}
-                alt="Founder"
-                className="h-32 w-32 rounded-full object-cover shadow-lg ring-4 ring-accent/20"
-              />
-              <div className="text-left">
-                <p className="text-muted-foreground leading-relaxed">
-                  "I'm not a bootcamp. I'm an independent tech educator dedicated to helping you break into the industry.
-                  No false promises — just structured learning, real projects, and accountability."
+          <div className="mx-auto max-w-6xl">
+            <div className="grid items-center gap-16 md:grid-cols-2">
+              
+              {/* Image Side */}
+              <motion.div
+                initial={{ opacity: 0, x: -40 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="relative flex justify-center"
+              >
+                <div className="relative">
+                  <img
+                    src={founderAvatar}
+                    alt="Founder"
+                    className="h-72 w-72 rounded-2xl object-cover shadow-2xl"
+                  />
+                  <div className="absolute -bottom-6 -right-6 rounded-xl bg-background p-4 shadow-lg">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Star className="h-4 w-4 text-accent" />
+                      Trusted Tech Mentor
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Text Side */}
+              <motion.div
+                initial={{ opacity: 0, x: 40 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <p className="text-sm font-semibold uppercase tracking-widest text-accent">
+                  Founder & Lead Instructor
                 </p>
-                <ul className="mt-6 space-y-3">
-                  {["Focus on real-world projects", "Structured learning paths", "Direct mentorship & feedback"].map(
-                    (item) => (
-                      <li key={item} className="flex items-center gap-3 text-sm text-foreground">
-                        <CheckCircle2 className="h-5 w-5 shrink-0 text-accent" />
-                        {item}
-                      </li>
-                    )
-                  )}
-                </ul>
-              </div>
+
+                <h2 className="mt-3 font-display text-3xl font-bold text-foreground sm:text-4xl">
+                  I Built This For Serious Learners.
+                </h2>
+
+                <p className="mt-6 text-muted-foreground leading-relaxed">
+                  I created this platform because I was tired of seeing people
+                  jump between tutorials without direction. Coding is not about
+                  watching videos — it’s about building discipline, shipping
+                  projects, and thinking like an engineer.
+                </p>
+
+                <p className="mt-4 text-muted-foreground leading-relaxed">
+                  This isn’t a bootcamp. It’s structured mentorship designed
+                  to transform you into a confident, job-ready developer.
+                </p>
+
+                {/* Credentials */}
+                <div className="mt-8 grid grid-cols-2 gap-6">
+                  <div className="flex items-center gap-3">
+                    <Briefcase className="h-6 w-6 text-accent" />
+                    <div>
+                      <p className="text-lg font-bold">5+ Years</p>
+                      <p className="text-xs text-muted-foreground">Industry Experience</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Users className="h-6 w-6 text-accent" />
+                    <div>
+                      <p className="text-lg font-bold">100+ Students</p>
+                      <p className="text-xs text-muted-foreground">Mentored</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Award className="h-6 w-6 text-accent" />
+                    <div>
+                      <p className="text-lg font-bold">Real Projects</p>
+                      <p className="text-xs text-muted-foreground">Portfolio Focused</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="h-6 w-6 text-accent" />
+                    <div>
+                      <p className="text-lg font-bold">Accountability</p>
+                      <p className="text-xs text-muted-foreground">Structured Growth</p>
+                    </div>
+                  </div>
+                </div>
+
+                <Link to="/auth" className="mt-10 inline-block">
+                  <Button size="lg">Work With Me</Button>
+                </Link>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -118,6 +206,7 @@ const Index = () => {
             Learning Tracks
           </h2>
           <p className="mt-3 text-muted-foreground">Choose a path that aligns with your goals.</p>
+
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {tracks.map((t, i) => (
               <motion.div
@@ -135,39 +224,6 @@ const Index = () => {
               </motion.div>
             ))}
           </div>
-          <Link to="/tracks" className="mt-10 inline-block">
-            <Button variant="outline" size="lg">Choose Your Track</Button>
-          </Link>
-        </div>
-      </section>
-
-      {/* Modes Overview */}
-      <section className="py-20 bg-card">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="font-display text-3xl font-bold text-foreground sm:text-4xl">
-            Learning Modes
-          </h2>
-          <p className="mt-3 text-muted-foreground">Choose the level of structure and support you need.</p>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {modes.map((m, i) => (
-              <motion.div
-                key={m.title}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-40px" }}
-                variants={fadeUp}
-                className="rounded-xl border border-border bg-background p-6 text-left shadow-sm transition-shadow hover:shadow-md"
-              >
-                <m.icon className="h-10 w-10 text-accent" />
-                <h3 className="mt-4 font-display text-lg font-semibold text-foreground">{m.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{m.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-          <Link to="/modes" className="mt-10 inline-block">
-            <Button variant="outline" size="lg">Select Learning Mode</Button>
-          </Link>
         </div>
       </section>
     </Layout>
