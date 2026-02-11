@@ -5,6 +5,7 @@ import Layout from "@/components/Layout";
 import { useLearnerData } from "@/hooks/useLearnerData";
 import { useAuth } from "@/hooks/useAuth";
 import { usePayment } from "@/hooks/usePayment";
+import CourseList from "@/components/dashboard/CourseList";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -274,7 +275,7 @@ const DashboardPage = () => {
             </motion.div>
           </div>
 
-          {/* Learning Hub Placeholder */}
+          {/* Learning Hub — Courses for paid, upgrade prompt for free */}
           <motion.div
             custom={6}
             initial="hidden"
@@ -283,53 +284,87 @@ const DashboardPage = () => {
             className="mt-8"
           >
             <h3 className="flex items-center gap-2 font-display text-xl font-semibold text-foreground">
-              <GraduationCap className="h-5 w-5 text-accent" /> Learning Hub
+              <GraduationCap className="h-5 w-5 text-accent" /> Your Courses
             </h3>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {[
-                {
-                  icon: BookOpen,
-                  title: "Course Materials",
-                  desc: "Your curriculum and lessons will appear here.",
-                  locked: isLocked,
-                },
-                {
-                  icon: Target,
-                  title: "Progress Tracker",
-                  desc: "Track your weekly milestones and achievements.",
-                  locked: isLocked,
-                },
-                {
-                  icon: Globe,
-                  title: "Community",
-                  desc: "Connect with fellow learners and mentors.",
-                  locked: isLocked,
-                },
-              ].map((card) => (
-                <div
-                  key={card.title}
-                  className={`relative rounded-xl border border-border bg-card p-6 shadow-sm ${
-                    card.locked ? "opacity-60" : ""
-                  }`}
+
+            {enrollment.access_type === "paid" && !isLocked ? (
+              <div className="mt-4">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Your {formatTrack(enrollment.learning_track)} track curriculum:
+                </p>
+                <CourseList track={enrollment.learning_track} />
+              </div>
+            ) : (
+              <div className="mt-4 rounded-xl border border-border bg-card p-8 text-center shadow-sm">
+                <Lock className="mx-auto h-10 w-10 text-muted-foreground" />
+                <h4 className="mt-4 font-display text-lg font-semibold text-foreground">
+                  {enrollment.access_type === "free"
+                    ? "Courses Available on Paid Plan"
+                    : "Complete Payment to Unlock"}
+                </h4>
+                <p className="mt-2 max-w-md mx-auto text-sm text-muted-foreground">
+                  {enrollment.access_type === "free"
+                    ? "Upgrade to a paid plan to access your full track curriculum with structured courses, projects, and mentorship."
+                    : "Your payment is pending. Complete it to unlock all course materials."}
+                </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="mt-5 gap-1.5"
+                  disabled={paymentLoading}
+                  onClick={initializePayment}
                 >
-                  {card.locked && (
-                    <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-card/80 backdrop-blur-sm">
-                      <div className="text-center">
-                        <Lock className="mx-auto h-6 w-6 text-muted-foreground" />
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          {isPending ? "Pending Approval" : "Upgrade Required"}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  <card.icon className="h-8 w-8 text-accent" />
-                  <h4 className="mt-3 font-display text-base font-semibold text-foreground">
-                    {card.title}
-                  </h4>
-                  <p className="mt-1 text-sm text-muted-foreground">{card.desc}</p>
-                </div>
-              ))}
-            </div>
+                  <CreditCard className="h-4 w-4" />
+                  {paymentLoading ? "Processing…" : `Upgrade — ₦${amount.toLocaleString()}`}
+                </Button>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Quick Links */}
+          <motion.div
+            custom={7}
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            className="mt-8 grid gap-4 sm:grid-cols-3"
+          >
+            {[
+              {
+                icon: Target,
+                title: "Progress Tracker",
+                desc: "Track your weekly milestones.",
+                locked: isLocked || enrollment.access_type === "free",
+              },
+              {
+                icon: Globe,
+                title: "Community",
+                desc: "Connect with fellow learners.",
+                locked: isLocked || enrollment.access_type === "free",
+              },
+              {
+                icon: BookOpen,
+                title: "Resources",
+                desc: "Guides, cheatsheets & tools.",
+                locked: isLocked || enrollment.access_type === "free",
+              },
+            ].map((card) => (
+              <div
+                key={card.title}
+                className={`relative rounded-xl border border-border bg-card p-6 shadow-sm ${
+                  card.locked ? "opacity-60" : ""
+                }`}
+              >
+                {card.locked && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-card/80 backdrop-blur-sm">
+                    <Lock className="mx-auto h-5 w-5 text-muted-foreground" />
+                  </div>
+                )}
+                <card.icon className="h-7 w-7 text-accent" />
+                <h4 className="mt-3 font-display text-sm font-semibold text-foreground">{card.title}</h4>
+                <p className="mt-1 text-xs text-muted-foreground">{card.desc}</p>
+              </div>
+            ))}
           </motion.div>
         </div>
       </section>
