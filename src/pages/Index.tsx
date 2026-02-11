@@ -168,7 +168,7 @@ const Index = () => {
                   <div className="flex items-center gap-3">
                     <Users className="h-6 w-6 text-accent" />
                     <div>
-                      <p className="text-lg font-bold">100+ Students</p>
+                      <p className="text-lg font-bold">50+ Students</p>
                       <p className="text-xs text-muted-foreground">Mentored</p>
                     </div>
                   </div>
