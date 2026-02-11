@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut } from "lucide-react";
+import { Menu, X, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -12,9 +13,24 @@ const navLinks = [
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!user) { setIsAdmin(false); return; }
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      setIsAdmin(!!data);
+    };
+    checkAdmin();
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -43,6 +59,13 @@ const Navbar = () => {
           ))}
           {user ? (
             <div className="flex items-center gap-3">
+              {isAdmin && (
+                <Link to="/admin">
+                  <Button size="sm" variant="outline" className="gap-1">
+                    <Shield className="h-4 w-4" /> Admin
+                  </Button>
+                </Link>
+              )}
               <Link to="/dashboard">
                 <Button size="sm" variant="secondary">
                   Dashboard
@@ -85,6 +108,13 @@ const Navbar = () => {
             ))}
             {user ? (
               <>
+                {isAdmin && (
+                  <Link to="/admin" onClick={() => setOpen(false)}>
+                    <Button size="sm" variant="outline" className="w-full gap-1">
+                      <Shield className="h-4 w-4" /> Admin
+                    </Button>
+                  </Link>
+                )}
                 <Link to="/dashboard" onClick={() => setOpen(false)}>
                   <Button size="sm" variant="secondary" className="w-full">
                     Dashboard
