@@ -199,6 +199,142 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Why This Is Different */}
+<section className="py-24 bg-background">
+  <div className="container mx-auto px-4 text-center max-w-5xl">
+    <motion.h2
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+      className="font-display text-3xl font-bold text-foreground sm:text-4xl"
+    >
+      Why This Is Different
+    </motion.h2>
+
+    <p className="mt-6 text-muted-foreground max-w-3xl mx-auto">
+      Most people fail at coding because they lack structure, feedback, and accountability.
+      This platform fixes that.
+    </p>
+
+    <div className="mt-16 grid gap-8 md:grid-cols-3 text-left">
+      {[
+        {
+          title: "No Random Tutorials",
+          desc: "You follow a structured roadmap. Every lesson builds on the previous one.",
+        },
+        {
+          title: "Real Project Execution",
+          desc: "You don’t just watch — you build, deploy, and ship real applications.",
+        },
+        {
+          title: "Discipline & Accountability",
+          desc: "Deadlines. Feedback. Correction. Growth. You are trained, not entertained.",
+        },
+      ].map((item, i) => (
+        <motion.div
+          key={item.title}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: i * 0.15 }}
+          className="rounded-xl border border-border bg-card p-8 shadow-sm hover:shadow-md transition-shadow"
+        >
+          <h3 className="font-semibold text-lg text-foreground">
+            {item.title}
+          </h3>
+          <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
+            {item.desc}
+          </p>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+</section>
+
+
+      {/* Testimonials */}
+<section className="py-24 bg-card">
+  <div className="container mx-auto px-4 text-center max-w-6xl">
+    <h2 className="font-display text-3xl font-bold text-foreground sm:text-4xl">
+      What Students Are Saying
+    </h2>
+
+    <div className="mt-16 grid gap-8 md:grid-cols-3 text-left">
+      {[
+        {
+          quote:
+            "Before this program, I was jumping between YouTube videos. Now I have structure and real projects in my portfolio.",
+          name: "Frontend Student",
+        },
+        {
+          quote:
+            "The accountability changed everything for me. I stopped procrastinating and started building.",
+          name: "Backend Student",
+        },
+        {
+          quote:
+            "This feels like real mentorship. Honest feedback. Clear direction. No fluff.",
+          name: "Full-Stack Student",
+        },
+      ].map((t, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: i * 0.15 }}
+          className="rounded-xl border border-border bg-background p-8 shadow-sm"
+        >
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            “{t.quote}”
+          </p>
+          <p className="mt-6 font-semibold text-foreground text-sm">
+            — {t.name}
+          </p>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+</section>
+
+
+      {/* Final CTA */}
+<section className="relative py-28 overflow-hidden">
+  <div className="absolute inset-0 bg-accent opacity-10" />
+  <div className="relative container mx-auto px-4 text-center max-w-3xl">
+    <motion.h2
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+      className="font-display text-3xl font-bold text-foreground sm:text-4xl"
+    >
+      Ready To Stop Watching Tutorials?
+    </motion.h2>
+
+    <p className="mt-6 text-muted-foreground">
+      The difference between developers and dreamers is execution.
+      Start building. Start growing. Start now.
+    </p>
+
+    <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+      <Link to="/auth">
+        <Button size="lg" className="min-w-[220px]">
+          Start Free (1-Week Access)
+        </Button>
+      </Link>
+
+      <Link to="/auth">
+        <Button size="lg" variant="outline" className="min-w-[220px]">
+          Join Paid Program
+        </Button>
+      </Link>
+    </div>
+  </div>
+</section>
+
+
       {/* Tracks Overview */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4 text-center">
