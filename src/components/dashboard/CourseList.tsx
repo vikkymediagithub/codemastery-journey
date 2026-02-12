@@ -216,8 +216,6 @@
 
 
 
-
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { trackCourses } from "@/data/courses";
@@ -227,6 +225,7 @@ import {
   Lock,
   PlayCircle,
   CreditCard,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -251,100 +250,116 @@ const levelColor: Record<string, string> = {
 const CourseList = ({
   track,
   accessType,
-  isTrialExpired,
+  isTrialExpired = false,
 }: CourseListProps) => {
   const courses = trackCourses[track] || trackCourses["foundation"];
   const [lockedLesson, setLockedLesson] = useState<any | null>(null);
   const { initializePayment, amount, loading } = usePayment();
 
-  const hasFullAccess = accessType === "paid";
+  const hasFullAccess =
+    accessType === "paid" || (accessType === "free" && !isTrialExpired);
+
+  const canAccessLesson = (lesson: any) => {
+    if (hasFullAccess) return true;
+    return lesson.isPreview === true;
+  };
 
   return (
     <>
-      <div className="space-y-4">
-        {courses.map((course, i) => {
-          const isFreePreviewCourse = i === 0;
-
-          return (
-            <motion.div
-              key={course.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="group rounded-xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent text-xs font-bold">
-                  {i + 1}
-                </span>
-                <h4 className="font-display text-base font-semibold text-foreground">
+      <div className="space-y-6">
+        {courses.map((course, i) => (
+          <motion.div
+            key={course.id}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+            className="rounded-xl border border-border bg-card p-6 shadow-sm"
+          >
+            {/* Course Header */}
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h4 className="font-display text-lg font-semibold text-foreground">
                   {course.title}
                 </h4>
-                {isFreePreviewCourse && accessType === "free" && (
-                  <Badge variant="secondary">Free Preview</Badge>
-                )}
+                <p className="text-sm text-muted-foreground">
+                  {course.description}
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground ml-9">
-                {course.description}
-              </p>
+              <Badge className={levelColor[course.level]}>
+                {course.level}
+              </Badge>
+            </div>
 
-              <div className="mt-3 ml-9 space-y-2">
-                {course.lessons.map((lesson, j) => {
-                  const canAccessLesson =
-                    hasFullAccess ||
-                    (accessType === "free" &&
-                      !isTrialExpired &&
-                      isFreePreviewCourse &&
-                      j === 0);
+            {/* Lessons */}
+            <div className="mt-4 space-y-3">
+              {course.lessons.map((lesson) => {
+                const accessible = canAccessLesson(lesson);
 
-                  return (
+                return (
+                  <div
+                    key={lesson.id}
+                    className="relative flex items-center justify-between rounded-lg border border-border p-3 hover:bg-accent/5 transition"
+                  >
                     <div
-                      key={lesson.id}
-                      className="relative flex items-center justify-between rounded-lg border border-border p-3 hover:bg-accent/5 transition"
+                      className={`flex items-center gap-3 ${
+                        !accessible ? "opacity-50" : ""
+                      }`}
                     >
-                      <div className={`flex items-center gap-2 ${!canAccessLesson ? "opacity-50" : ""}`}>
-                        <Layers className="h-4 w-4" />
-                        <span>{lesson.title}</span>
-                        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">{lesson.duration}</span>
-                      </div>
+                      <Layers className="h-4 w-4" />
+                      <span className="text-sm">{lesson.title}</span>
+                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">
+                        {lesson.duration}
+                      </span>
 
-                      {!canAccessLesson && (
-                        <button
-                          className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-card/80 backdrop-blur-sm text-sm text-foreground font-medium"
-                          onClick={() => setLockedLesson({ course, lesson })}
-                        >
-                          <Lock className="mr-1 h-4 w-4" /> Unlock
-                        </button>
-                      )}
-
-                      {canAccessLesson && (
-                        <Button size="sm" variant="outline" className="gap-1.5">
-                          <PlayCircle className="h-4 w-4" /> Start
-                        </Button>
+                      {lesson.isPreview && !hasFullAccess && (
+                        <Badge variant="secondary" className="ml-2">
+                          Preview
+                        </Badge>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          );
-        })}
+
+                    {accessible ? (
+                      <Button size="sm" variant="outline" className="gap-1.5">
+                        <PlayCircle className="h-4 w-4" />
+                        Start
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="gap-1.5"
+                        onClick={() => setLockedLesson({ course, lesson })}
+                      >
+                        <Lock className="h-4 w-4" />
+                        Unlock
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Lesson Upgrade Modal */}
+      {/* Upgrade Modal */}
       <Dialog open={!!lockedLesson} onOpenChange={() => setLockedLesson(null)}>
         <DialogContent className="max-w-md text-center">
           <Lock className="mx-auto h-10 w-10 text-muted-foreground" />
-          <h3 className="mt-4 font-display text-lg font-semibold text-foreground">
-            Unlock Lesson
+
+          <h3 className="mt-4 font-display text-lg font-semibold">
+            Unlock Full Access
           </h3>
+
           <p className="mt-2 text-sm text-muted-foreground">
-            Upgrade to access all lessons, projects, mentorship, and downloadable resources.
+            Upgrade to access all lessons, projects, mentorship, and
+            downloadable resources.
           </p>
+
           <Button
             variant="secondary"
-            className="mt-5 gap-1.5"
+            className="mt-6 w-full gap-2"
             onClick={initializePayment}
             disabled={loading}
           >
@@ -358,4 +373,3 @@ const CourseList = ({
 };
 
 export default CourseList;
-
