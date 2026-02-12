@@ -197,7 +197,7 @@ import Layout from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, ArrowRight, Eye, EyeOff, Shield } from "lucide-react";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(false);
@@ -310,7 +310,14 @@ const AuthPage = () => {
                 : "Sign up to begin your coding journey."}
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            {isLogin && (
+              <div className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs text-muted-foreground">
+                <Shield className="h-3.5 w-3.5 text-accent" />
+                <span>Admins are automatically redirected after login</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
               {/* Email */}
               <div>
                 <Label htmlFor="email" className="flex items-center gap-2">
