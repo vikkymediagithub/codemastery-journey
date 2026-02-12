@@ -73,15 +73,12 @@
 
 
 
-
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
-
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 
@@ -105,16 +102,16 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Public routes */}
+            {/* Public pages */}
             <Route path="/" element={<Index />} />
             <Route path="/tracks" element={<Tracks />} />
             <Route path="/modes" element={<Modes />} />
             <Route path="/auth" element={<Auth />} />
 
             {/* Admin login */}
-            <Route path="/admin/login" element={<AdminAuthPage />} />
+            <Route path="/admin-auth" element={<AdminAuthPage />} />
 
-            {/* Protected student routes */}
+            {/* Protected pages */}
             <Route
               path="/onboarding"
               element={
@@ -132,7 +129,7 @@ const App = () => (
               }
             />
 
-            {/* Protected admin routes */}
+            {/* Admin dashboard */}
             <Route
               path="/admin"
               element={
@@ -142,7 +139,7 @@ const App = () => (
               }
             />
 
-            {/* Fallback */}
+            {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
