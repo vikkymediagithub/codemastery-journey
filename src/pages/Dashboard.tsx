@@ -442,7 +442,6 @@
 
 
 
-
 import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -455,18 +454,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   BookOpen,
-  Clock,
   GraduationCap,
   Target,
-  Monitor,
-  Wifi,
   CalendarDays,
   AlertTriangle,
   Lock,
-  User,
   Globe,
   Zap,
-  CreditCard,
   Crown,
 } from "lucide-react";
 
@@ -475,19 +469,22 @@ const DashboardPage = () => {
   const {
     profile,
     enrollment,
-    techBackground,
-    commitment,
     loading,
     isExpired,
     daysRemaining,
     refetch,
   } = useLearnerData();
 
-  const { initializePayment, verifyPayment, loading: paymentLoading, amount } =
-    usePayment();
+  const {
+    initializePayment,
+    verifyPayment,
+    loading: paymentLoading,
+    amount,
+  } = usePayment();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
+  /* ---------------- PAYMENT VERIFICATION ---------------- */
   useEffect(() => {
     const shouldVerify = searchParams.get("verify_payment");
     const reference =
@@ -505,6 +502,7 @@ const DashboardPage = () => {
     }
   }, []);
 
+  /* ---------------- LOADING STATE ---------------- */
   if (loading) {
     return (
       <Layout>
@@ -515,6 +513,7 @@ const DashboardPage = () => {
     );
   }
 
+  /* ---------------- NO ENROLLMENT ---------------- */
   if (!enrollment) {
     return (
       <Layout>
@@ -533,23 +532,30 @@ const DashboardPage = () => {
     );
   }
 
+  /* ---------------- ACCESS LOGIC ---------------- */
   const isTrial = enrollment.access_type === "free";
   const trialExpired = isTrial && isExpired;
-  const isPaid = enrollment.access_type === "paid" && enrollment.status === "active";
+  const isPaid =
+    enrollment.access_type === "paid" &&
+    enrollment.status === "active";
 
   const showUrgency =
-    isTrial && daysRemaining !== null && daysRemaining <= 2 && !trialExpired;
+    isTrial &&
+    daysRemaining !== null &&
+    daysRemaining <= 2 &&
+    !trialExpired;
 
   return (
     <Layout>
       <section className="py-10 bg-background">
         <div className="container mx-auto px-4">
 
-          {/* Header */}
+          {/* HEADER */}
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold">
-                Welcome, {profile?.full_name || user?.email?.split("@")[0]}
+                Welcome,{" "}
+                {profile?.full_name || user?.email?.split("@")[0]}
               </h1>
               <p className="text-muted-foreground">
                 Your structured learning hub
@@ -564,7 +570,7 @@ const DashboardPage = () => {
             )}
           </div>
 
-          {/* TRIAL ALERT */}
+          {/* ACTIVE TRIAL BANNER */}
           {isTrial && !trialExpired && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -599,7 +605,7 @@ const DashboardPage = () => {
             </motion.div>
           )}
 
-          {/* EXPIRED */}
+          {/* EXPIRED TRIAL */}
           {trialExpired && (
             <div className="mb-6 rounded-xl border border-destructive bg-destructive/5 p-6 text-center">
               <AlertTriangle className="mx-auto h-6 w-6 text-destructive" />
@@ -615,10 +621,18 @@ const DashboardPage = () => {
             </div>
           )}
 
-          {/* Stats */}
+          {/* STATS */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Track" value={enrollment.learning_track} icon={BookOpen} />
-            <StatCard label="Mode" value={enrollment.learning_mode} icon={Target} />
+            <StatCard
+              label="Track"
+              value={enrollment.learning_track}
+              icon={BookOpen}
+            />
+            <StatCard
+              label="Mode"
+              value={enrollment.learning_mode}
+              icon={Target}
+            />
             <StatCard
               label="Access"
               value={isPaid ? "Paid Program" : "Free Trial"}
@@ -637,25 +651,21 @@ const DashboardPage = () => {
             />
           </div>
 
-          {/* Courses Section */}
+          {/* COURSES */}
           <div className="mt-10">
             <h3 className="text-xl font-semibold flex items-center gap-2">
               <GraduationCap className="h-5 w-5 text-accent" />
               Your Courses
             </h3>
 
-            {isPaid ? (
-              <CourseList track={enrollment.learning_track} />
-            ) : (
-              <LockedPreview
-                onUpgrade={initializePayment}
-                price={amount}
-                loading={paymentLoading}
-              />
-            )}
+            <CourseList
+              track={enrollment.learning_track}
+              accessType={enrollment.access_type}
+              isTrialExpired={trialExpired}
+            />
           </div>
 
-          {/* Quick Links */}
+          {/* PREMIUM FEATURES */}
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             <QuickCard
               icon={Target}
@@ -676,13 +686,14 @@ const DashboardPage = () => {
               locked={!isPaid}
             />
           </div>
+
         </div>
       </section>
     </Layout>
   );
 };
 
-/* ---------- Components ---------- */
+/* ---------- COMPONENTS ---------- */
 
 const StatCard = ({ label, value, icon: Icon }: any) => (
   <div className="rounded-xl border bg-card p-5 shadow-sm">
@@ -694,23 +705,12 @@ const StatCard = ({ label, value, icon: Icon }: any) => (
   </div>
 );
 
-const LockedPreview = ({ onUpgrade, price, loading }: any) => (
-  <div className="mt-6 rounded-xl border bg-card p-10 text-center">
-    <Lock className="mx-auto h-10 w-10 text-muted-foreground" />
-    <h4 className="mt-4 text-lg font-semibold">
-      Full Curriculum Locked
-    </h4>
-    <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-      Unlock structured lessons, real-world projects, mentorship support and community access.
-    </p>
-    <Button className="mt-6" onClick={onUpgrade} disabled={loading}>
-      {loading ? "Processing…" : `Upgrade — ₦${price.toLocaleString()}`}
-    </Button>
-  </div>
-);
-
 const QuickCard = ({ icon: Icon, title, desc, locked }: any) => (
-  <div className={`relative rounded-xl border bg-card p-6 shadow-sm ${locked ? "opacity-60" : ""}`}>
+  <div
+    className={`relative rounded-xl border bg-card p-6 shadow-sm ${
+      locked ? "opacity-60" : ""
+    }`}
+  >
     {locked && (
       <div className="absolute inset-0 flex items-center justify-center backdrop-blur-sm bg-card/70 rounded-xl">
         <Lock className="h-5 w-5 text-muted-foreground" />
