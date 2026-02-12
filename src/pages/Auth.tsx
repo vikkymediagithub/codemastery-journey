@@ -215,7 +215,19 @@ const AuthPage = () => {
   useEffect(() => {
     if (!user) return;
 
-    const checkEnrollment = async () => {
+    const checkRole = async () => {
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (roleData) {
+        navigate("/admin", { replace: true });
+        return;
+      }
+
       const { data } = await supabase
         .from("enrollments")
         .select("id")
@@ -225,7 +237,7 @@ const AuthPage = () => {
       navigate(data ? "/dashboard" : "/onboarding", { replace: true });
     };
 
-    checkEnrollment();
+    checkRole();
   }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
