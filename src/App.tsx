@@ -71,8 +71,6 @@
 
 
 
-
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -81,7 +79,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
-
 import Index from "./pages/Index";
 import Tracks from "./pages/Tracks";
 import Modes from "./pages/Modes";
@@ -102,16 +99,12 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Public pages */}
             <Route path="/" element={<Index />} />
             <Route path="/tracks" element={<Tracks />} />
             <Route path="/modes" element={<Modes />} />
             <Route path="/auth" element={<Auth />} />
-
-            {/* Admin login */}
             <Route path="/admin-auth" element={<AdminAuthPage />} />
 
-            {/* Protected pages */}
             <Route
               path="/onboarding"
               element={
@@ -128,8 +121,6 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-
-            {/* Admin dashboard */}
             <Route
               path="/admin"
               element={
@@ -138,8 +129,6 @@ const App = () => (
                 </AdminRoute>
               }
             />
-
-            {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
