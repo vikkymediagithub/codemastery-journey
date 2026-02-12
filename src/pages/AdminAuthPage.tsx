@@ -1,36 +1,42 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import Layout from "@/components/Layout";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import Layout from "@/components/Layout";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Lock, Mail, Eye, EyeOff, ArrowRight, Shield } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Shield, ArrowRight } from "lucide-react";
 
 const AdminAuthPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [isFirstAdmin, setIsFirstAdmin] = useState(false);
 
+  const { user, signIn } = useAuth();
   const navigate = useNavigate();
 
-  // Check if there are any admins already
+  // Redirect if already logged in as admin
   useEffect(() => {
-    const checkAdmins = async () => {
-      const { data: admins } = await supabase
-        .from("user_roles")
-        .select("*")
-        .eq("role", "admin");
+    const checkAdmin = async () => {
+      if (!user) return;
 
-      setIsFirstAdmin(!admins || admins.length === 0);
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (data) navigate("/admin", { replace: true });
+      else navigate("/dashboard", { replace: true });
     };
 
-    checkAdmins();
-  }, []);
+    checkAdmin();
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,69 +44,15 @@ const AdminAuthPage = () => {
 
     setSubmitting(true);
 
-    try {
-      // LOGIN FLOW
-      const { data: { session }, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (loginError) {
-        toast({ title: "Login failed", description: loginError.message, variant: "destructive" });
-        setSubmitting(false);
-        return;
-      }
-
-      // Check if the logged-in user is admin
-      const { data: roleData, error: roleError } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session?.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      if (roleError || !roleData) {
-        toast({ title: "Access denied", description: "You are not an admin", variant: "destructive" });
-        await supabase.auth.signOut();
-        setSubmitting(false);
-        return;
-      }
-
-      toast({ title: "Welcome, Admin!" });
-      navigate("/admin", { replace: true });
-
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Something went wrong", variant: "destructive" });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Optional: initial admin signup (only if no admin exists yet)
-  const handleFirstAdminSignup = async () => {
-    if (!email || !password) {
-      toast({ title: "Email and password are required", variant: "destructive" });
-      return;
+    // Admin login
+    const { error } = await signIn(email, password);
+    if (error) {
+      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+    } else {
+      // Role check handled by useEffect
     }
 
-    setSubmitting(true);
-
-    try {
-      const { data: { user }, error: signupError } = await supabase.auth.signUp({ email, password });
-
-      if (signupError) {
-        toast({ title: "Signup failed", description: signupError.message, variant: "destructive" });
-        setSubmitting(false);
-        return;
-      }
-
-      // Assign admin role
-      await supabase.from("user_roles").insert({ user_id: user!.id, role: "admin" });
-
-      toast({ title: "Admin account created! Please login." });
-      setIsFirstAdmin(false);
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Something went wrong", variant: "destructive" });
-    } finally {
-      setSubmitting(false);
-    }
+    setSubmitting(false);
   };
 
   return (
@@ -113,25 +65,18 @@ const AdminAuthPage = () => {
           className="mx-auto w-full max-w-md px-4"
         >
           <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <Shield className="h-5 w-5 text-destructive" />
-              <h1 className="text-lg font-bold">Admin {isFirstAdmin ? "Signup" : "Login"}</h1>
+            <div className="flex items-center justify-center gap-2 mb-4 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-muted-foreground">
+              <Shield className="h-3.5 w-3.5 text-destructive" />
+              Admin accounts are created by the system administrator only
             </div>
 
-            {isFirstAdmin ? (
-              <div className="text-center text-sm mb-4 text-muted-foreground">
-                No admin account exists. Create the first admin account.
-              </div>
-            ) : (
-              <div className="text-center text-sm mb-4 text-muted-foreground">
-                Admin access only. Students cannot see this page.
-              </div>
-            )}
+            <h1 className="text-center text-2xl font-bold text-foreground">Admin Login</h1>
+            <p className="mt-2 text-center text-sm text-muted-foreground">
+              Sign in to access the admin dashboard
+            </p>
 
-            <form
-              onSubmit={isFirstAdmin ? (e) => { e.preventDefault(); handleFirstAdminSignup(); } : handleSubmit}
-              className="space-y-5"
-            >
+            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+              {/* Email */}
               <div>
                 <Label htmlFor="email" className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" /> Email
@@ -142,11 +87,12 @@ const AdminAuthPage = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder="admin@example.com"
                   className="mt-1.5"
                 />
               </div>
 
+              {/* Password */}
               <div>
                 <Label htmlFor="password" className="flex items-center gap-2">
                   <Lock className="h-4 w-4 text-muted-foreground" /> Password
@@ -171,11 +117,15 @@ const AdminAuthPage = () => {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={submitting}>
-                {submitting ? "Please wait…" : isFirstAdmin ? "Create Admin Account" : "Login"}
-                <ArrowRight className="h-4 w-4 ml-2" />
+              <Button type="submit" variant="secondary" className="w-full gap-2" disabled={submitting}>
+                {submitting ? "Please wait…" : "Sign In"}
+                <ArrowRight className="h-4 w-4" />
               </Button>
             </form>
+
+            <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
+              Access restricted to authorized administrators.
+            </p>
           </div>
         </motion.div>
       </section>
