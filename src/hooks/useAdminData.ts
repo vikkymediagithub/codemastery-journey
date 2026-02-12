@@ -25,6 +25,7 @@ interface AdminData {
   refetch: () => void;
   updateEnrollmentStatus: (enrollmentId: string, status: "active" | "locked") => Promise<boolean>;
   updateAccessType: (enrollmentId: string, accessType: "free" | "paid") => Promise<boolean>;
+  extendTrial: (enrollmentId: string, days: number) => Promise<boolean>;
 }
 
 export const useAdminData = (): AdminData => {
@@ -106,5 +107,23 @@ export const useAdminData = (): AdminData => {
     return !error;
   };
 
-  return { isAdmin, loading, learners, stats, refetch: fetchData, updateEnrollmentStatus, updateAccessType };
+  const extendTrial = async (enrollmentId: string, days: number) => {
+    const { data: enrollment } = await supabase
+      .from("enrollments")
+      .select("free_expires_at")
+      .eq("id", enrollmentId)
+      .single();
+
+    const currentExpiry = enrollment?.free_expires_at ? new Date(enrollment.free_expires_at) : new Date();
+    const newExpiry = new Date(currentExpiry.getTime() + days * 24 * 60 * 60 * 1000);
+
+    const { error } = await supabase
+      .from("enrollments")
+      .update({ free_expires_at: newExpiry.toISOString() })
+      .eq("id", enrollmentId);
+    if (!error) await fetchData();
+    return !error;
+  };
+
+  return { isAdmin, loading, learners, stats, refetch: fetchData, updateEnrollmentStatus, updateAccessType, extendTrial };
 };
