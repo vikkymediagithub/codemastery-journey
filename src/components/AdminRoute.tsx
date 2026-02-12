@@ -51,55 +51,51 @@
 
 
 
-
-
-// components/AdminRoute.tsx
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
-interface AdminRouteProps {
-  children: React.ReactNode;
-}
-
-const AdminRoute = ({ children }: AdminRouteProps) => {
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading: authLoading } = useAuth();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const checkAdmin = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session?.user) {
+      if (!user) {
         setIsAdmin(false);
-        setLoading(false);
+        setChecking(false);
         return;
       }
 
       const { data } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", session.user.id)
+        .eq("user_id", user.id)
         .eq("role", "admin")
         .maybeSingle();
 
       setIsAdmin(!!data);
-      setLoading(false);
+      setChecking(false);
     };
 
-    checkAdmin();
-  }, []);
+    if (!authLoading) {
+      checkAdmin();
+    }
+  }, [user, authLoading]);
 
-  if (loading)
+  if (authLoading || checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
       </div>
     );
+  }
 
-  if (!isAdmin) return <Navigate to="/admin-login" replace />;
+  if (!user) return <Navigate to="/admin-auth" replace />;
+  if (!isAdmin) return <Navigate to="/" replace />; // Non-admins go to main page
+
   return <>{children}</>;
 };
 
