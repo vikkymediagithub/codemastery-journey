@@ -75,13 +75,13 @@
 
 
 
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 
@@ -101,17 +101,18 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
-        {/* Global toasters */}
         <Toaster />
         <Sonner />
-
         <BrowserRouter>
           <Routes>
-            {/* Public student routes */}
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/tracks" element={<Tracks />} />
             <Route path="/modes" element={<Modes />} />
             <Route path="/auth" element={<Auth />} />
+
+            {/* Admin login */}
+            <Route path="/admin/login" element={<AdminAuthPage />} />
 
             {/* Protected student routes */}
             <Route
@@ -131,10 +132,7 @@ const App = () => (
               }
             />
 
-            {/* Admin login route (only known to admin) */}
-            <Route path="/admin-login" element={<AdminAuthPage />} />
-
-            {/* Admin dashboard route (protected by AdminRoute) */}
+            {/* Protected admin routes */}
             <Route
               path="/admin"
               element={
@@ -154,4 +152,3 @@ const App = () => (
 );
 
 export default App;
-
