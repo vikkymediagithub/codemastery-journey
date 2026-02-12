@@ -197,10 +197,12 @@ import Layout from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Mail, Lock, ArrowRight, Eye, EyeOff, Shield } from "lucide-react";
+import { Mail, Lock, ArrowRight, Eye, EyeOff, Shield, GraduationCap } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(false);
+  const [loginRole, setLoginRole] = useState<"student" | "admin">("student");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -311,10 +313,22 @@ const AuthPage = () => {
             </p>
 
             {isLogin && (
-              <div className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs text-muted-foreground">
-                <Shield className="h-3.5 w-3.5 text-accent" />
-                <span>Admins are automatically redirected after login</span>
-              </div>
+              <Tabs
+                value={loginRole}
+                onValueChange={(v) => setLoginRole(v as "student" | "admin")}
+                className="mt-5"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="student" className="gap-1.5">
+                    <GraduationCap className="h-4 w-4" />
+                    Student
+                  </TabsTrigger>
+                  <TabsTrigger value="admin" className="gap-1.5">
+                    <Shield className="h-4 w-4" />
+                    Admin
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             )}
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-5">
