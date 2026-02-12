@@ -74,16 +74,9 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
-interface Profile {
-  id: string;
-  full_name: string;
-  role: "student" | "admin";
-}
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  profile: Profile | null;
   loading: boolean;
   isAdmin: boolean;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -96,17 +89,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, full_name, role")
-      .eq("id", userId)
-      .single();
-
-    if (!error) setProfile(data);
+  const fetchAdminStatus = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    setIsAdmin(!!data);
   };
 
   useEffect(() => {
@@ -115,7 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        await fetchProfile(session.user.id);
+        await fetchAdminStatus(session.user.id);
       }
 
       setLoading(false);
@@ -127,9 +120,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          await fetchAdminStatus(session.user.id);
         } else {
-          setProfile(null);
+          setIsAdmin(false);
         }
 
         setLoading(false);
@@ -152,14 +145,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
   };
 
-  const isAdmin = profile?.role === "admin";
-
   return (
     <AuthContext.Provider
       value={{
         user,
         session,
-        profile,
         loading,
         isAdmin,
         signUp,
