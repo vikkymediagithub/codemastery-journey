@@ -53,51 +53,54 @@
 
 
 
-
+// components/AdminRoute.tsx
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
-/* ---------- Hardcoded Admin Credentials ---------- */
-const ADMIN_EMAIL = "vikkymediatechnologies@gmail.com";
+interface AdminRouteProps {
+  children: React.ReactNode;
+}
 
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading: authLoading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+const AdminRoute = ({ children }: AdminRouteProps) => {
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const checkAdmin = () => {
-      if (!user) {
+    const checkAdmin = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.user) {
         setIsAdmin(false);
+        setLoading(false);
         return;
       }
 
-      // Hardcoded admin check
-      if (user.email === ADMIN_EMAIL) {
-        setIsAdmin(true);
-      } else {
-        setIsAdmin(false);
-      }
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      setIsAdmin(!!data);
+      setLoading(false);
     };
 
-    if (!authLoading) {
-      checkAdmin();
-    }
-  }, [user, authLoading]);
+    checkAdmin();
+  }, []);
 
-  if (authLoading || isAdmin === null) {
+  if (loading)
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
       </div>
     );
-  }
 
-  if (!user) return <Navigate to="/auth" replace />;
-  if (!isAdmin) return <Navigate to="/dashboard" replace />;
-
+  if (!isAdmin) return <Navigate to="/admin-login" replace />;
   return <>{children}</>;
 };
 
 export default AdminRoute;
-
