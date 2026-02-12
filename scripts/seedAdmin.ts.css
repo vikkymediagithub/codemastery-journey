@@ -1,0 +1,132 @@
+:root {
+    --primary: #1a3c5e;
+    --accent: #ff6b35;
+    --accent-light: #ffa07a;
+    --secondary: #3d5a80;
+    --white: #ffffff;
+    --sand: #fef6e4
+    --text-dark: #1a1a2e;
+    --text-light: #6b7280;
+    --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-2: linear-gradient(135deg, #ff6b35 0%, #f7b801 100%);
+    --gradient-3: linear-gradient(135deg, #1a3c5e 0%, #3d5a80 100%);
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-dark);
+    line-height: 1.6;
+    overflow: hidden;
+    background: var(--white);
+}
+
+/* Typography */
+h1,h2,h3,h4 {
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* Nav */
+nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding-bottom: 1px solid rgba(26, 60, 94, 0.1);
+}
+
+.nav-container{
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--primary);
+    text-decoration: none;
+    letter-spacing: -0.5px;
+}
+
+.logo span {
+    color: var(--accent);
+}
+
+.nav-links {
+    display: flex;
+    gap: 3rem;
+    list-style: none;
+    align-items: center;
+}
+
+.nav-links a{
+    text-decoration: none;
+    color: var(--text-dark);
+    font-weight: 500;
+    transition: color 0.3s ease;
+    position: relative;
+}
+
+.cta-button{
+    background: var(--gradient-2);
+    color: var(--white);
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+cta-button:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+}
+
+/* hero section */
+.hero{
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding-top: 100px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--cream) 0%, var(--white) 100%);
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 80%;
+    height: 150%;
+}
+
+.hero-container{
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    padding: 0 2rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-title{
+    font-size: 4.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary);
+    line-height: 1.1;
+}
