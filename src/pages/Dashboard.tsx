@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import { useLearnerData } from "@/hooks/useLearnerData";
 import { useAuth } from "@/hooks/useAuth";
 import { usePayment } from "@/hooks/usePayment";
+import UpgradeCelebration from "@/components/UpgradeCelebration";
 import CourseList from "@/components/dashboard/CourseList";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import {
   Clock,
   Sparkles,
   ArrowRight,
+  Settings,
 } from "lucide-react";
 
 const fadeUp = {
@@ -53,6 +55,7 @@ const DashboardPage = () => {
   } = usePayment();
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const [showCelebration, setShowCelebration] = useState(false);
 
   /* ── Payment verification on redirect ── */
   useEffect(() => {
@@ -67,7 +70,10 @@ const DashboardPage = () => {
       setSearchParams(searchParams, { replace: true });
 
       verifyPayment(reference).then((ok) => {
-        if (ok) refetch();
+        if (ok) {
+          setShowCelebration(true);
+          refetch();
+        }
       });
     }
   }, []);
@@ -124,6 +130,10 @@ const DashboardPage = () => {
 
   return (
     <Layout>
+      <UpgradeCelebration
+        show={showCelebration}
+        onDismiss={() => setShowCelebration(false)}
+      />
       <section className="py-8 md:py-12 bg-background min-h-screen">
         <div className="container mx-auto px-4 max-w-6xl">
 
@@ -150,23 +160,31 @@ const DashboardPage = () => {
                 </p>
               </div>
 
-              {isPaid ? (
-                <Badge className="gap-1.5 bg-accent text-accent-foreground px-3 py-1.5 text-sm w-fit">
-                  <Crown className="h-4 w-4" />
-                  Premium Member
-                </Badge>
-              ) : (
-                <Button
-                  onClick={initializePayment}
-                  disabled={paymentLoading}
-                  className="gap-2 w-fit"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  {paymentLoading
-                    ? "Processing…"
-                    : `Upgrade — ₦${amount.toLocaleString()}`}
-                </Button>
-              )}
+              <div className="flex items-center gap-3 w-fit">
+                <Link to="/settings">
+                  <Button variant="outline" size="sm" className="gap-1.5">
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Button>
+                </Link>
+                {isPaid ? (
+                  <Badge className="gap-1.5 bg-accent text-accent-foreground px-3 py-1.5 text-sm">
+                    <Crown className="h-4 w-4" />
+                    Premium Member
+                  </Badge>
+                ) : (
+                  <Button
+                    onClick={initializePayment}
+                    disabled={paymentLoading}
+                    className="gap-2"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {paymentLoading
+                      ? "Processing…"
+                      : `Upgrade — ₦${amount.toLocaleString()}`}
+                  </Button>
+                )}
+              </div>
             </div>
           </motion.div>
 
