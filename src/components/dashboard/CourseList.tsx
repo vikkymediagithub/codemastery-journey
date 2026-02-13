@@ -1,69 +1,3 @@
-// import { motion } from "framer-motion";
-// import { trackCourses, type Course } from "@/data/courses";
-// import { BookOpen, Clock, Layers, GraduationCap } from "lucide-react";
-// import { Badge } from "@/components/ui/badge";
-
-// interface CourseListProps {
-//   track: string;
-// }
-
-// const levelColor: Record<string, string> = {
-//   Beginner: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-//   Intermediate: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-//   Advanced: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-// };
-
-// const CourseList = ({ track }: CourseListProps) => {
-//   const courses = trackCourses[track] || trackCourses["foundation"];
-
-//   return (
-//     <div className="space-y-4">
-//       {courses.map((course, i) => (
-//         <motion.div
-//           key={course.id}
-//           initial={{ opacity: 0, y: 12 }}
-//           animate={{ opacity: 1, y: 0 }}
-//           transition={{ delay: i * 0.06, duration: 0.35 }}
-//           className="group rounded-xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-shadow"
-//         >
-//           <div className="flex items-start justify-between gap-4">
-//             <div className="flex-1">
-//               <div className="flex items-center gap-2 mb-1.5">
-//                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent text-xs font-bold">
-//                   {i + 1}
-//                 </span>
-//                 <h4 className="font-display text-base font-semibold text-foreground">
-//                   {course.title}
-//                 </h4>
-//               </div>
-//               <p className="text-sm text-muted-foreground ml-9">{course.description}</p>
-//               <div className="mt-3 ml-9 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-//                 <span className="flex items-center gap-1">
-//                   <Layers className="h-3.5 w-3.5" /> {course.modules} modules
-//                 </span>
-//                 <span className="flex items-center gap-1">
-//                   <Clock className="h-3.5 w-3.5" /> {course.duration}
-//                 </span>
-//                 <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${levelColor[course.level]}`}>
-//                   {course.level}
-//                 </span>
-//               </div>
-//             </div>
-//           </div>
-//         </motion.div>
-//       ))}
-//     </div>
-//   );
-// };
-
-// export default CourseList;
-
-
-
-
-
-
-
 // import { useState } from "react";
 // import { motion } from "framer-motion";
 // import { trackCourses } from "@/data/courses";
@@ -73,6 +7,7 @@
 //   Lock,
 //   PlayCircle,
 //   CreditCard,
+//   Eye,
 // } from "lucide-react";
 // import { Button } from "@/components/ui/button";
 // import { Badge } from "@/components/ui/badge";
@@ -97,109 +32,116 @@
 // const CourseList = ({
 //   track,
 //   accessType,
-//   isTrialExpired,
+//   isTrialExpired = false,
 // }: CourseListProps) => {
 //   const courses = trackCourses[track] || trackCourses["foundation"];
-//   const [lockedCourse, setLockedCourse] = useState<any | null>(null);
+//   const [lockedLesson, setLockedLesson] = useState<any | null>(null);
 //   const { initializePayment, amount, loading } = usePayment();
 
-//   const hasFullAccess = accessType === "paid";
+//   const hasFullAccess =
+//     accessType === "paid" || (accessType === "free" && !isTrialExpired);
+
+//   const canAccessLesson = (lesson: any) => {
+//     if (hasFullAccess) return true;
+//     return lesson.isPreview === true;
+//   };
 
 //   return (
 //     <>
-//       <div className="space-y-4">
-//         {courses.map((course, i) => {
-//           const isFreePreview = i === 0; // only first course free
-//           const canAccess =
-//             hasFullAccess ||
-//             (accessType === "free" && !isTrialExpired && isFreePreview);
-
-//           return (
-//             <motion.div
-//               key={course.id}
-//               initial={{ opacity: 0, y: 12 }}
-//               animate={{ opacity: 1, y: 0 }}
-//               transition={{ delay: i * 0.05 }}
-//               className="relative group rounded-xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition"
-//             >
-//               {/* LOCK OVERLAY */}
-//               {!canAccess && (
-//                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-xl bg-card/80 backdrop-blur-sm">
-//                   <Lock className="h-6 w-6 text-muted-foreground mb-2" />
-//                   <p className="text-sm font-medium text-foreground">
-//                     Premium Content
-//                   </p>
-//                   <Button
-//                     size="sm"
-//                     variant="secondary"
-//                     className="mt-3 gap-1.5"
-//                     onClick={() => setLockedCourse(course)}
-//                   >
-//                     <CreditCard className="h-4 w-4" />
-//                     Upgrade to Unlock
-//                   </Button>
-//                 </div>
-//               )}
-
-//               <div className={`${!canAccess ? "opacity-50" : ""}`}>
-//                 <div className="flex items-center gap-2 mb-2">
-//                   <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent text-xs font-bold">
-//                     {i + 1}
-//                   </span>
-//                   <h4 className="font-display text-base font-semibold text-foreground">
-//                     {course.title}
-//                   </h4>
-//                   {isFreePreview && accessType === "free" && (
-//                     <Badge variant="secondary">Free Preview</Badge>
-//                   )}
-//                 </div>
-
-//                 <p className="text-sm text-muted-foreground ml-9">
+//       <div className="space-y-6">
+//         {courses.map((course, i) => (
+//           <motion.div
+//             key={course.id}
+//             initial={{ opacity: 0, y: 12 }}
+//             animate={{ opacity: 1, y: 0 }}
+//             transition={{ delay: i * 0.05 }}
+//             className="rounded-xl border border-border bg-card p-6 shadow-sm"
+//           >
+//             {/* Course Header */}
+//             <div className="flex items-center justify-between mb-3">
+//               <div>
+//                 <h4 className="font-display text-lg font-semibold text-foreground">
+//                   {course.title}
+//                 </h4>
+//                 <p className="text-sm text-muted-foreground">
 //                   {course.description}
 //                 </p>
-
-//                 <div className="mt-3 ml-9 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-//                   <span className="flex items-center gap-1">
-//                     <Layers className="h-3.5 w-3.5" /> {course.modules} modules
-//                   </span>
-//                   <span className="flex items-center gap-1">
-//                     <Clock className="h-3.5 w-3.5" /> {course.duration}
-//                   </span>
-//                   <span
-//                     className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${levelColor[course.level]}`}
-//                   >
-//                     {course.level}
-//                   </span>
-//                 </div>
-
-//                 {canAccess && (
-//                   <div className="mt-4 ml-9">
-//                     <Button size="sm" className="gap-1.5">
-//                       <PlayCircle className="h-4 w-4" />
-//                       Start Course
-//                     </Button>
-//                   </div>
-//                 )}
 //               </div>
-//             </motion.div>
-//           );
-//         })}
+//               <Badge className={levelColor[course.level]}>
+//                 {course.level}
+//               </Badge>
+//             </div>
+
+//             {/* Lessons */}
+//             <div className="mt-4 space-y-3">
+//               {course.lessons.map((lesson) => {
+//                 const accessible = canAccessLesson(lesson);
+
+//                 return (
+//                   <div
+//                     key={lesson.id}
+//                     className="relative flex items-center justify-between rounded-lg border border-border p-3 hover:bg-accent/5 transition"
+//                   >
+//                     <div
+//                       className={`flex items-center gap-3 ${
+//                         !accessible ? "opacity-50" : ""
+//                       }`}
+//                     >
+//                       <Layers className="h-4 w-4" />
+//                       <span className="text-sm">{lesson.title}</span>
+//                       <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+//                       <span className="text-xs text-muted-foreground">
+//                         {lesson.duration}
+//                       </span>
+
+//                       {lesson.isPreview && !hasFullAccess && (
+//                         <Badge variant="secondary" className="ml-2">
+//                           Preview
+//                         </Badge>
+//                       )}
+//                     </div>
+
+//                     {accessible ? (
+//                       <Button size="sm" variant="outline" className="gap-1.5">
+//                         <PlayCircle className="h-4 w-4" />
+//                         Start
+//                       </Button>
+//                     ) : (
+//                       <Button
+//                         size="sm"
+//                         variant="secondary"
+//                         className="gap-1.5"
+//                         onClick={() => setLockedLesson({ course, lesson })}
+//                       >
+//                         <Lock className="h-4 w-4" />
+//                         Unlock
+//                       </Button>
+//                     )}
+//                   </div>
+//                 );
+//               })}
+//             </div>
+//           </motion.div>
+//         ))}
 //       </div>
 
-//       {/* UPGRADE MODAL */}
-//       <Dialog open={!!lockedCourse} onOpenChange={() => setLockedCourse(null)}>
+//       {/* Upgrade Modal */}
+//       <Dialog open={!!lockedLesson} onOpenChange={() => setLockedLesson(null)}>
 //         <DialogContent className="max-w-md text-center">
 //           <Lock className="mx-auto h-10 w-10 text-muted-foreground" />
-//           <h3 className="mt-4 font-display text-lg font-semibold text-foreground">
-//             Unlock Full Curriculum
+
+//           <h3 className="mt-4 font-display text-lg font-semibold">
+//             Unlock Full Access
 //           </h3>
+
 //           <p className="mt-2 text-sm text-muted-foreground">
-//             Upgrade to access all modules, projects, mentorship, and downloadable
-//             resources.
+//             Upgrade to access all lessons, projects, mentorship, and
+//             downloadable resources.
 //           </p>
+
 //           <Button
 //             variant="secondary"
-//             className="mt-5 gap-1.5"
+//             className="mt-6 w-full gap-2"
 //             onClick={initializePayment}
 //             disabled={loading}
 //           >
@@ -216,159 +158,110 @@
 
 
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { trackCourses } from "@/data/courses";
-import {
-  Clock,
-  Layers,
-  Lock,
-  PlayCircle,
-  CreditCard,
-  Eye,
-} from "lucide-react";
+
+
+
+
+// This is an EXAMPLE - Update your actual CourseList.tsx to match this pattern
+
+import { Lock, AlertTriangle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { usePayment } from "@/hooks/usePayment";
 
 interface CourseListProps {
   track: string;
   accessType: "free" | "paid";
-  isTrialExpired?: boolean;
+  isTrialExpired: boolean;
+  isLocked: boolean;
+  canAccess: boolean;
 }
 
-const levelColor: Record<string, string> = {
-  Beginner:
-    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  Intermediate:
-    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  Advanced:
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-};
-
-const CourseList = ({
-  track,
-  accessType,
-  isTrialExpired = false,
+const CourseList = ({ 
+  track, 
+  accessType, 
+  isTrialExpired, 
+  isLocked,
+  canAccess 
 }: CourseListProps) => {
-  const courses = trackCourses[track] || trackCourses["foundation"];
-  const [lockedLesson, setLockedLesson] = useState<any | null>(null);
-  const { initializePayment, amount, loading } = usePayment();
+  
+  // Sample courses - replace with your actual course data
+  const courses = [
+    { id: 1, title: "HTML Fundamentals", track: "foundation", free: true },
+    { id: 2, title: "CSS Styling", track: "foundation", free: true },
+    { id: 3, title: "JavaScript Basics", track: "foundation", free: false },
+    { id: 4, title: "React Framework", track: "frontend", free: false },
+    // ... more courses
+  ];
 
-  const hasFullAccess =
-    accessType === "paid" || (accessType === "free" && !isTrialExpired);
+  const relevantCourses = courses.filter(c => 
+    c.track === track || track === "fullstack"
+  );
 
-  const canAccessLesson = (lesson: any) => {
-    if (hasFullAccess) return true;
-    return lesson.isPreview === true;
-  };
-
-  return (
-    <>
-      <div className="space-y-6">
-        {courses.map((course, i) => (
-          <motion.div
-            key={course.id}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="rounded-xl border border-border bg-card p-6 shadow-sm"
-          >
-            {/* Course Header */}
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h4 className="font-display text-lg font-semibold text-foreground">
-                  {course.title}
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  {course.description}
-                </p>
-              </div>
-              <Badge className={levelColor[course.level]}>
-                {course.level}
-              </Badge>
-            </div>
-
-            {/* Lessons */}
-            <div className="mt-4 space-y-3">
-              {course.lessons.map((lesson) => {
-                const accessible = canAccessLesson(lesson);
-
-                return (
-                  <div
-                    key={lesson.id}
-                    className="relative flex items-center justify-between rounded-lg border border-border p-3 hover:bg-accent/5 transition"
-                  >
-                    <div
-                      className={`flex items-center gap-3 ${
-                        !accessible ? "opacity-50" : ""
-                      }`}
-                    >
-                      <Layers className="h-4 w-4" />
-                      <span className="text-sm">{lesson.title}</span>
-                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
-                        {lesson.duration}
-                      </span>
-
-                      {lesson.isPreview && !hasFullAccess && (
-                        <Badge variant="secondary" className="ml-2">
-                          Preview
-                        </Badge>
-                      )}
-                    </div>
-
-                    {accessible ? (
-                      <Button size="sm" variant="outline" className="gap-1.5">
-                        <PlayCircle className="h-4 w-4" />
-                        Start
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="gap-1.5"
-                        onClick={() => setLockedLesson({ course, lesson })}
-                      >
-                        <Lock className="h-4 w-4" />
-                        Unlock
-                      </Button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Upgrade Modal */}
-      <Dialog open={!!lockedLesson} onOpenChange={() => setLockedLesson(null)}>
-        <DialogContent className="max-w-md text-center">
-          <Lock className="mx-auto h-10 w-10 text-muted-foreground" />
-
-          <h3 className="mt-4 font-display text-lg font-semibold">
-            Unlock Full Access
-          </h3>
-
-          <p className="mt-2 text-sm text-muted-foreground">
-            Upgrade to access all lessons, projects, mentorship, and
-            downloadable resources.
+  // Show message if user can't access courses
+  if (!canAccess) {
+    if (isTrialExpired) {
+      return (
+        <div className="mt-4 rounded-xl border border-destructive bg-destructive/5 p-8 text-center">
+          <AlertTriangle className="mx-auto h-8 w-8 text-destructive" />
+          <p className="mt-3 font-semibold">Trial Expired</p>
+          <p className="text-sm text-muted-foreground">
+            Upgrade to access your courses
           </p>
+        </div>
+      );
+    }
 
-          <Button
-            variant="secondary"
-            className="mt-6 w-full gap-2"
-            onClick={initializePayment}
-            disabled={loading}
+    if (isLocked) {
+      return (
+        <div className="mt-4 rounded-xl border border-amber-500 bg-amber-50 dark:bg-amber-950 p-8 text-center">
+          <Clock className="mx-auto h-8 w-8 text-amber-600" />
+          <p className="mt-3 font-semibold text-amber-900 dark:text-amber-100">
+            Awaiting Approval
+          </p>
+          <p className="text-sm text-amber-700 dark:text-amber-300">
+            Your courses will be available once your application is approved
+          </p>
+        </div>
+      );
+    }
+  }
+
+  // User can access - show courses
+  return (
+    <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {relevantCourses.map((course) => {
+        const isAccessible = accessType === "paid" || course.free;
+
+        return (
+          <div
+            key={course.id}
+            className={`relative rounded-xl border bg-card p-6 shadow-sm transition-opacity ${
+              !isAccessible ? "opacity-60" : ""
+            }`}
           >
-            <CreditCard className="h-4 w-4" />
-            {loading ? "Processing…" : `Upgrade — ₦${amount.toLocaleString()}`}
-          </Button>
-        </DialogContent>
-      </Dialog>
-    </>
+            {!isAccessible && (
+              <div className="absolute top-2 right-2">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+              </div>
+            )}
+            
+            <h4 className="font-semibold">{course.title}</h4>
+            <p className="text-xs text-muted-foreground mt-1">
+              {course.free ? "Free Preview" : "Premium Content"}
+            </p>
+
+            {isAccessible ? (
+              <Button size="sm" className="mt-4 w-full">
+                Start Learning
+              </Button>
+            ) : (
+              <Button size="sm" variant="outline" className="mt-4 w-full" disabled>
+                Locked
+              </Button>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 };
 

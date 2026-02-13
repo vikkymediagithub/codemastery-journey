@@ -7,11 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Layout from "@/components/Layout";
-import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useOnboardingSubmit, type OnboardingData } from "@/hooks/useOnboardingSubmit";
 
-const steps = ["Personal Info", "Tech Background", "Commitment", "Discipline", "Enrollment"];
+const steps = [
+  { id: 0, name: "About You", icon: "👤" },
+  { id: 1, name: "Tech Setup", icon: "💻" },
+  { id: 2, name: "Your Goals", icon: "🎯" },
+  { id: 3, name: "Commitment", icon: "✅" },
+  { id: 4, name: "Get Started", icon: "🚀" },
+];
 
 const OnboardingPage = () => {
   const { user } = useAuth();
@@ -47,6 +53,17 @@ const OnboardingPage = () => {
   const next = () => setStep((s) => Math.min(s + 1, steps.length - 1));
   const prev = () => setStep((s) => Math.max(s - 1, 0));
 
+  const canProceed = () => {
+    switch (step) {
+      case 0: return form.name && form.email && form.country;
+      case 1: return form.experience;
+      case 2: return true;
+      case 3: return form.followsDeadlines && form.practicesConsistently && form.openToFeedback;
+      case 4: return form.agreeTerms;
+      default: return true;
+    }
+  };
+
   const handleSubmit = async () => {
     setSubmitting(true);
     const ok = await submit(form);
@@ -57,22 +74,26 @@ const OnboardingPage = () => {
   if (submitted) {
     return (
       <Layout>
-        <section className="flex min-h-[70vh] items-center justify-center bg-background">
+        <section className="flex min-h-[80vh] items-center justify-center bg-background">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="mx-auto max-w-md text-center px-4"
           >
-            <CheckCircle2 className="mx-auto h-16 w-16 text-accent" />
-            <h2 className="mt-6 font-display text-3xl font-bold text-foreground">Application Submitted</h2>
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+              <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
+            </div>
+            <h2 className="font-display text-3xl font-bold text-foreground">
+              You're All Set! 🎉
+            </h2>
             <p className="mt-4 text-muted-foreground">
               {form.accessType === "free"
-                ? "Your 7-day free access is now active. Make the most of it!"
-                : "We'll review your application and get back to you shortly."}
+                ? "Your 7-day free trial starts now. Let's begin learning!"
+                : "We'll review your application and activate your account within 24 hours."}
             </p>
             <Button
-              variant="secondary"
-              className="mt-6"
+              size="lg"
+              className="mt-8"
               onClick={() => navigate("/dashboard")}
             >
               Go to Dashboard
@@ -85,39 +106,59 @@ const OnboardingPage = () => {
 
   return (
     <Layout>
-      <section className="py-20 bg-background">
+      <section className="py-12 bg-gradient-to-b from-background to-muted/20 min-h-screen">
         <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-xl">
-            <h1 className="font-display text-3xl font-bold text-foreground text-center">Get Started</h1>
-            <p className="mt-2 text-center text-muted-foreground">
-              Complete the application to begin your journey.
-            </p>
-
-            {/* Progress */}
-            <div className="mt-8 flex items-center gap-1">
-              {steps.map((s, i) => (
-                <div key={s} className="flex-1 flex flex-col items-center gap-1">
-                  <div
-                    className={`h-1.5 w-full rounded-full transition-colors ${
-                      i <= step ? "bg-accent" : "bg-muted"
-                    }`}
-                  />
-                  <span className={`text-[10px] font-medium ${i <= step ? "text-accent" : "text-muted-foreground"}`}>
-                    {s}
-                  </span>
-                </div>
-              ))}
+          <div className="mx-auto max-w-2xl">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="font-display text-4xl font-bold text-foreground">
+                Welcome to CodeMastery
+              </h1>
+              <p className="mt-2 text-muted-foreground">
+                Let's personalize your learning journey
+              </p>
             </div>
 
-            <div className="mt-10">
+            {/* Progress Bar */}
+            <div className="mb-10">
+              <div className="flex justify-between items-center mb-4">
+                {steps.map((s, i) => (
+                  <div key={s.id} className="flex flex-col items-center flex-1">
+                    <div
+                      className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl transition-all ${
+                        i <= step
+                          ? "bg-accent text-white scale-110"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {i < step ? "✓" : s.icon}
+                    </div>
+                    <span className={`mt-2 text-xs font-medium ${i <= step ? "text-accent" : "text-muted-foreground"}`}>
+                      {s.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                <motion.div
+                  className="h-full bg-accent"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${((step + 1) / steps.length) * 100}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+            </div>
+
+            {/* Form Card */}
+            <div className="rounded-2xl border border-border bg-card p-8 shadow-lg">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={step}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.25 }}
-                  className="space-y-5"
+                  transition={{ duration: 0.3 }}
+                  className="space-y-6"
                 >
                   {step === 0 && <StepPersonalInfo form={form} update={update} />}
                   {step === 1 && <StepTechBackground form={form} update={update} />}
@@ -128,21 +169,31 @@ const OnboardingPage = () => {
               </AnimatePresence>
 
               {/* Navigation */}
-              <div className="mt-10 flex items-center justify-between">
-                <Button variant="ghost" onClick={prev} disabled={step === 0} className="gap-1">
+              <div className="mt-8 flex items-center justify-between pt-6 border-t">
+                <Button
+                  variant="ghost"
+                  onClick={prev}
+                  disabled={step === 0}
+                  className="gap-2"
+                >
                   <ArrowLeft className="h-4 w-4" /> Back
                 </Button>
+
                 {step < steps.length - 1 ? (
-                  <Button variant="secondary" onClick={next} className="gap-1">
+                  <Button
+                    onClick={next}
+                    disabled={!canProceed()}
+                    className="gap-2"
+                  >
                     Continue <ArrowRight className="h-4 w-4" />
                   </Button>
                 ) : (
                   <Button
-                    variant="secondary"
                     disabled={!form.agreeTerms || submitting}
                     onClick={handleSubmit}
+                    className="gap-2"
                   >
-                    {submitting ? "Submitting…" : "Submit Application"}
+                    {submitting ? "Submitting…" : "Submit"} <Sparkles className="h-4 w-4" />
                   </Button>
                 )}
               </div>
@@ -162,31 +213,55 @@ interface StepProps {
 }
 
 const StepPersonalInfo = ({ form, update }: StepProps) => (
-  <>
+  <div className="space-y-5">
+    <h2 className="text-2xl font-bold">Tell us about yourself</h2>
     <div>
-      <Label htmlFor="name">Full Name</Label>
-      <Input id="name" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Your full name" className="mt-1.5" />
+      <Label htmlFor="name">Full Name *</Label>
+      <Input
+        id="name"
+        value={form.name}
+        onChange={(e) => update("name", e.target.value)}
+        placeholder="John Doe"
+        className="mt-2"
+      />
     </div>
     <div>
-      <Label htmlFor="email">Email Address</Label>
-      <Input id="email" type="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="you@example.com" className="mt-1.5" />
+      <Label htmlFor="email">Email Address *</Label>
+      <Input
+        id="email"
+        type="email"
+        value={form.email}
+        onChange={(e) => update("email", e.target.value)}
+        placeholder="you@example.com"
+        className="mt-2"
+        disabled
+      />
     </div>
     <div>
-      <Label htmlFor="country">Country</Label>
-      <Input id="country" value={form.country} onChange={(e) => update("country", e.target.value)} placeholder="Your country" className="mt-1.5" />
+      <Label htmlFor="country">Country *</Label>
+      <Input
+        id="country"
+        value={form.country}
+        onChange={(e) => update("country", e.target.value)}
+        placeholder="Nigeria"
+        className="mt-2"
+      />
     </div>
-  </>
+  </div>
 );
 
 const StepTechBackground = ({ form, update }: StepProps) => (
-  <>
+  <div className="space-y-5">
+    <h2 className="text-2xl font-bold">Your tech setup</h2>
     <div>
-      <Label>Experience Level</Label>
+      <Label>Coding Experience *</Label>
       <Select value={form.experience} onValueChange={(v) => update("experience", v)}>
-        <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select level" /></SelectTrigger>
+        <SelectTrigger className="mt-2">
+          <SelectValue placeholder="Select your level" />
+        </SelectTrigger>
         <SelectContent>
-          <SelectItem value="none">No experience</SelectItem>
-          <SelectItem value="beginner">{"Beginner (< 6 months)"}</SelectItem>
+          <SelectItem value="none">Complete Beginner</SelectItem>
+          <SelectItem value="beginner">Some Experience ({"<"} 6 months)</SelectItem>
           <SelectItem value="intermediate">Intermediate (6+ months)</SelectItem>
         </SelectContent>
       </Select>
@@ -194,7 +269,9 @@ const StepTechBackground = ({ form, update }: StepProps) => (
     <div>
       <Label>Primary Device</Label>
       <Select value={form.device} onValueChange={(v) => update("device", v)}>
-        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectTrigger className="mt-2">
+          <SelectValue />
+        </SelectTrigger>
         <SelectContent>
           <SelectItem value="laptop">Laptop / Desktop</SelectItem>
           <SelectItem value="mobile">Mobile Phone</SelectItem>
@@ -203,37 +280,44 @@ const StepTechBackground = ({ form, update }: StepProps) => (
       </Select>
     </div>
     <div>
-      <Label>Internet Quality</Label>
+      <Label>Internet Connection</Label>
       <Select value={form.internetQuality} onValueChange={(v) => update("internetQuality", v)}>
-        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectTrigger className="mt-2">
+          <SelectValue />
+        </SelectTrigger>
         <SelectContent>
-          <SelectItem value="poor">Poor</SelectItem>
-          <SelectItem value="fair">Fair</SelectItem>
-          <SelectItem value="good">Good</SelectItem>
+          <SelectItem value="poor">Poor (Slow/Unreliable)</SelectItem>
+          <SelectItem value="fair">Fair (Moderate)</SelectItem>
+          <SelectItem value="good">Good (Fast/Reliable)</SelectItem>
         </SelectContent>
       </Select>
     </div>
-  </>
+  </div>
 );
 
 const StepCommitment = ({ form, update }: StepProps) => (
-  <>
+  <div className="space-y-5">
+    <h2 className="text-2xl font-bold">Your learning goals</h2>
     <div>
-      <Label>Hours per week you can dedicate</Label>
+      <Label>Time Commitment (hours/week)</Label>
       <Select value={form.hoursPerWeek} onValueChange={(v) => update("hoursPerWeek", v)}>
-        <SelectTrigger className="mt-1.5"><SelectValue placeholder="Select hours" /></SelectTrigger>
+        <SelectTrigger className="mt-2">
+          <SelectValue />
+        </SelectTrigger>
         <SelectContent>
           <SelectItem value="5">5 hours/week</SelectItem>
           <SelectItem value="10">10 hours/week</SelectItem>
           <SelectItem value="20">20 hours/week</SelectItem>
-          <SelectItem value="40">40+ hours/week</SelectItem>
+          <SelectItem value="40">40+ hours/week (Full-time)</SelectItem>
         </SelectContent>
       </Select>
     </div>
     <div>
       <Label>Preferred Study Time</Label>
       <Select value={form.studyTime} onValueChange={(v) => update("studyTime", v)}>
-        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectTrigger className="mt-2">
+          <SelectValue />
+        </SelectTrigger>
         <SelectContent>
           <SelectItem value="morning">Morning</SelectItem>
           <SelectItem value="afternoon">Afternoon</SelectItem>
@@ -243,68 +327,74 @@ const StepCommitment = ({ form, update }: StepProps) => (
       </Select>
     </div>
     <div>
-      <Label>Learning Goal</Label>
+      <Label>Main Goal</Label>
       <Select value={form.learningGoal} onValueChange={(v) => update("learningGoal", v)}>
-        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectTrigger className="mt-2">
+          <SelectValue />
+        </SelectTrigger>
         <SelectContent>
           <SelectItem value="job">Get a Job</SelectItem>
-          <SelectItem value="freelancing">Freelancing</SelectItem>
-          <SelectItem value="projects">Build Projects</SelectItem>
-          <SelectItem value="improvement">Self Improvement</SelectItem>
+          <SelectItem value="freelancing">Start Freelancing</SelectItem>
+          <SelectItem value="projects">Build Personal Projects</SelectItem>
+          <SelectItem value="improvement">Personal Growth</SelectItem>
         </SelectContent>
       </Select>
     </div>
-    <div>
-      <Label htmlFor="whyLearn">Why do you want to learn coding?</Label>
-      <textarea
-        id="whyLearn"
-        value={form.whyLearn}
-        onChange={(e) => update("whyLearn", e.target.value)}
-        placeholder="Tell us your motivation..."
-        rows={4}
-        className="mt-1.5 flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      />
-    </div>
-  </>
+  </div>
 );
 
 const StepDiscipline = ({ form, update }: StepProps) => (
-  <div className="space-y-4">
-    <p className="text-sm text-muted-foreground">
-      Coding requires discipline. Confirm that you understand:
-    </p>
-    <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-3 text-sm text-foreground">
-      <p>• You will need to dedicate consistent hours each week.</p>
-      <p>• Progress depends on your effort and discipline.</p>
-      <p>• This program is not a shortcut — it's a structured path.</p>
+  <div className="space-y-5">
+    <h2 className="text-2xl font-bold">Commitment pledge</h2>
+    <div className="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
+      <p>💪 Learning to code requires dedication and consistency</p>
+      <p>📅 Regular practice is key to success</p>
+      <p>🎯 Your effort determines your progress</p>
     </div>
-    <div className="flex items-start gap-3">
-      <Checkbox id="followsDeadlines" checked={form.followsDeadlines} onCheckedChange={(c) => update("followsDeadlines", !!c)} />
-      <Label htmlFor="followsDeadlines" className="text-sm leading-relaxed cursor-pointer">
-        I commit to following deadlines and schedules.
-      </Label>
-    </div>
-    <div className="flex items-start gap-3">
-      <Checkbox id="practicesConsistently" checked={form.practicesConsistently} onCheckedChange={(c) => update("practicesConsistently", !!c)} />
-      <Label htmlFor="practicesConsistently" className="text-sm leading-relaxed cursor-pointer">
-        I will practice consistently, not just when convenient.
-      </Label>
-    </div>
-    <div className="flex items-start gap-3">
-      <Checkbox id="openToFeedback" checked={form.openToFeedback} onCheckedChange={(c) => update("openToFeedback", !!c)} />
-      <Label htmlFor="openToFeedback" className="text-sm leading-relaxed cursor-pointer">
-        I am open to feedback and willing to improve.
-      </Label>
+    <div className="space-y-4">
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id="deadlines"
+          checked={form.followsDeadlines}
+          onCheckedChange={(c) => update("followsDeadlines", !!c)}
+        />
+        <Label htmlFor="deadlines" className="cursor-pointer leading-relaxed">
+          I commit to following my study schedule
+        </Label>
+      </div>
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id="practice"
+          checked={form.practicesConsistently}
+          onCheckedChange={(c) => update("practicesConsistently", !!c)}
+        />
+        <Label htmlFor="practice" className="cursor-pointer leading-relaxed">
+          I will practice consistently, even when it's challenging
+        </Label>
+      </div>
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id="feedback"
+          checked={form.openToFeedback}
+          onCheckedChange={(c) => update("openToFeedback", !!c)}
+        />
+        <Label htmlFor="feedback" className="cursor-pointer leading-relaxed">
+          I am open to feedback and willing to improve
+        </Label>
+      </div>
     </div>
   </div>
 );
 
 const StepEnrollment = ({ form, update }: StepProps) => (
   <div className="space-y-5">
+    <h2 className="text-2xl font-bold">Choose your path</h2>
     <div>
       <Label>Learning Track</Label>
       <Select value={form.learningTrack} onValueChange={(v) => update("learningTrack", v)}>
-        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectTrigger className="mt-2">
+          <SelectValue />
+        </SelectTrigger>
         <SelectContent>
           <SelectItem value="foundation">Beginner Foundation</SelectItem>
           <SelectItem value="frontend">Frontend Development</SelectItem>
@@ -316,31 +406,52 @@ const StepEnrollment = ({ form, update }: StepProps) => (
     <div>
       <Label>Learning Mode</Label>
       <Select value={form.learningMode} onValueChange={(v) => update("learningMode", v)}>
-        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectTrigger className="mt-2">
+          <SelectValue />
+        </SelectTrigger>
         <SelectContent>
           <SelectItem value="self_paced">Self-Paced</SelectItem>
-          <SelectItem value="live">Live Instructor-Led</SelectItem>
-          <SelectItem value="mentorship">Mentorship</SelectItem>
+          <SelectItem value="live">Live Sessions</SelectItem>
+          <SelectItem value="mentorship">1-on-1 Mentorship</SelectItem>
           <SelectItem value="project">Project-Based</SelectItem>
-          <SelectItem value="hybrid">Hybrid</SelectItem>
+          <SelectItem value="hybrid">Hybrid (Mix)</SelectItem>
         </SelectContent>
       </Select>
     </div>
     <div>
       <Label>Access Type</Label>
       <Select value={form.accessType} onValueChange={(v) => update("accessType", v)}>
-        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+        <SelectTrigger className="mt-2">
+          <SelectValue />
+        </SelectTrigger>
         <SelectContent>
-          <SelectItem value="free">Free (7-Day Access)</SelectItem>
-          <SelectItem value="paid">Paid Program</SelectItem>
+          <SelectItem value="free">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              <span>Free Trial (7 Days)</span>
+            </div>
+          </SelectItem>
+          <SelectItem value="paid">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Paid Program (Full Access)</span>
+            </div>
+          </SelectItem>
         </SelectContent>
       </Select>
     </div>
-    <div className="flex items-start gap-3">
-      <Checkbox id="agreeTerms" checked={form.agreeTerms} onCheckedChange={(c) => update("agreeTerms", !!c)} />
-      <Label htmlFor="agreeTerms" className="text-sm leading-relaxed cursor-pointer">
-        I understand that free access lasts 7 days and continued learning requires payment. This training is provided by an independent coding educator. Certificates issued are non-accredited and for portfolio demonstration only.
-      </Label>
+    <div className="rounded-lg bg-accent/5 border border-accent/20 p-4">
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id="terms"
+          checked={form.agreeTerms}
+          onCheckedChange={(c) => update("agreeTerms", !!c)}
+        />
+        <Label htmlFor="terms" className="cursor-pointer text-sm leading-relaxed">
+          I understand that free access lasts 7 days. This training is provided
+          by an independent educator. Certificates are for portfolio use only.
+        </Label>
+      </div>
     </div>
   </div>
 );
