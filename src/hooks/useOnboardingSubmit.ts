@@ -176,14 +176,20 @@ export const useOnboardingSubmit = () => {
       }
       console.log("✅ Discipline check saved");
 
-      // 5. Enrollment
+      // 5. Enrollment - UPDATED LOGIC FOR PAYMENT FLOW
       console.log("💾 Creating enrollment...");
       const isFree = data.accessType === "free";
+      const isPaid = data.accessType === "paid";
+
+      // Free trial: Active immediately with 7-day expiry
+      // Paid: Locked until payment succeeds
+      const enrollmentStatus = isFree ? "active" : "locked";
       const freeExpiresAt = isFree
         ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         : null;
 
-      const enrollmentStatus = isFree ? "active" : "locked";
+      console.log("Access type:", data.accessType);
+      console.log("Initial status:", enrollmentStatus);
 
       const { error: enrollErr } = await supabase
         .from("enrollments")
@@ -208,7 +214,7 @@ export const useOnboardingSubmit = () => {
         title: "Success!",
         description: isFree 
           ? "Your 7-day free trial has started!" 
-          : "Your application has been submitted for review.",
+          : "Redirecting to payment...",
       });
 
       console.log("✅ RETURNING TRUE");

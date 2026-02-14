@@ -1,746 +1,10 @@
-// // import { useEffect } from "react";
-// // import { Link, useSearchParams } from "react-router-dom";
-// // import { motion } from "framer-motion";
-// // import Layout from "@/components/Layout";
-// // import { useLearnerData } from "@/hooks/useLearnerData";
-// // import { useAuth } from "@/hooks/useAuth";
-// // import { usePayment } from "@/hooks/usePayment";
-// // import CourseList from "@/components/dashboard/CourseList";
-// // import { Badge } from "@/components/ui/badge";
-// // import { Button } from "@/components/ui/button";
-// // import {
-// //   BookOpen,
-// //   Clock,
-// //   GraduationCap,
-// //   Target,
-// //   Monitor,
-// //   Wifi,
-// //   CalendarDays,
-// //   AlertTriangle,
-// //   Lock,
-// //   CheckCircle2,
-// //   User,
-// //   Globe,
-// //   Zap,
-// //   CreditCard,
-// // } from "lucide-react";
-
-// // const fadeUp = {
-// //   hidden: { opacity: 0, y: 16 },
-// //   visible: (i: number) => ({
-// //     opacity: 1,
-// //     y: 0,
-// //     transition: { delay: i * 0.08, duration: 0.4, ease: "easeOut" as const },
-// //   }),
-// // };
-
-// // const DashboardPage = () => {
-// //   const { user } = useAuth();
-// //   const { profile, enrollment, techBackground, commitment, loading, isExpired, daysRemaining, refetch } =
-// //     useLearnerData();
-// //   const { initializePayment, verifyPayment, loading: paymentLoading, amount } = usePayment();
-// //   const [searchParams, setSearchParams] = useSearchParams();
-
-// //   // Handle Paystack callback redirect
-// //   useEffect(() => {
-// //     const shouldVerify = searchParams.get("verify_payment");
-// //     const reference = searchParams.get("reference") || searchParams.get("trxref");
-// //     if (shouldVerify && reference) {
-// //       // Clean URL
-// //       searchParams.delete("verify_payment");
-// //       searchParams.delete("reference");
-// //       searchParams.delete("trxref");
-// //       setSearchParams(searchParams, { replace: true });
-// //       // Verify payment
-// //       verifyPayment(reference).then((ok) => {
-// //         if (ok) refetch();
-// //       });
-// //     }
-// //   }, []);
-
-// //   if (loading) {
-// //     return (
-// //       <Layout>
-// //         <div className="flex min-h-[60vh] items-center justify-center">
-// //           <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
-// //         </div>
-// //       </Layout>
-// //     );
-// //   }
-
-// //   if (!enrollment) {
-// //     return (
-// //       <Layout>
-// //         <section className="flex min-h-[60vh] items-center justify-center bg-background">
-// //           <div className="text-center px-4">
-// //             <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground" />
-// //             <h2 className="mt-4 font-display text-2xl font-bold text-foreground">
-// //               Complete Your Application
-// //             </h2>
-// //             <p className="mt-2 text-muted-foreground">
-// //               You haven't completed onboarding yet. Let's get started!
-// //             </p>
-// //             <Link to="/onboarding" className="mt-6 inline-block">
-// //               <Button variant="secondary">Start Onboarding</Button>
-// //             </Link>
-// //           </div>
-// //         </section>
-// //       </Layout>
-// //     );
-// //   }
-
-// //   const isLocked = enrollment.status === "locked";
-// //   const isPending = enrollment.access_type === "paid" && enrollment.status === "locked";
-
-// //   return (
-// //     <Layout>
-// //       <section className="py-10 bg-background">
-// //         <div className="container mx-auto px-4">
-// //           {/* Header */}
-// //           <div className="mb-8">
-// //             <h1 className="font-display text-3xl font-bold text-foreground">
-// //               Welcome, {profile?.full_name || user?.email?.split("@")[0]}
-// //             </h1>
-// //             <p className="mt-1 text-muted-foreground">Your learning dashboard</p>
-// //           </div>
-
-// //           {/* Alerts */}
-// //           {isPending && (
-// //             <motion.div
-// //               initial={{ opacity: 0, y: -8 }}
-// //               animate={{ opacity: 1, y: 0 }}
-// //               className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-50 p-4 dark:bg-amber-900/10"
-// //             >
-// //               <Clock className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-// //               <div>
-// //                 <p className="font-medium text-amber-800 dark:text-amber-400">Payment Required</p>
-// //                 <p className="mt-1 text-sm text-amber-700 dark:text-amber-500">
-// //                   Complete your payment of ₦{amount.toLocaleString()} to activate your account and unlock all features.
-// //                 </p>
-// //                 <Button
-// //                   variant="secondary"
-// //                   size="sm"
-// //                   className="mt-3 gap-1.5"
-// //                   disabled={paymentLoading}
-// //                   onClick={initializePayment}
-// //                 >
-// //                   <CreditCard className="h-4 w-4" />
-// //                   {paymentLoading ? "Processing…" : `Pay ₦${amount.toLocaleString()}`}
-// //                 </Button>
-// //               </div>
-// //             </motion.div>
-// //           )}
-
-// //           {isExpired && !isPending && (
-// //             <motion.div
-// //               initial={{ opacity: 0, y: -8 }}
-// //               animate={{ opacity: 1, y: 0 }}
-// //               className="mb-6 flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4"
-// //             >
-// //               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
-// //               <div>
-// //                 <p className="font-medium text-destructive">Free Trial Expired</p>
-// //                 <p className="mt-1 text-sm text-muted-foreground">
-// //                   Your 7-day free access has ended. Upgrade to the paid program to continue learning.
-// //                 </p>
-// //                 <Button
-// //                   variant="secondary"
-// //                   size="sm"
-// //                   className="mt-3 gap-1.5"
-// //                   disabled={paymentLoading}
-// //                   onClick={initializePayment}
-// //                 >
-// //                   <CreditCard className="h-4 w-4" />
-// //                   {paymentLoading ? "Processing…" : `Upgrade — ₦${amount.toLocaleString()}`}
-// //                 </Button>
-// //               </div>
-// //             </motion.div>
-// //           )}
-
-// //           {/* Stats Row */}
-// //           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-// //             {[
-// //               {
-// //                 icon: Zap,
-// //                 label: "Status",
-// //                 value: isLocked ? "Locked" : "Active",
-// //                 color: isLocked ? "text-amber-500" : "text-accent",
-// //               },
-// //               {
-// //                 icon: BookOpen,
-// //                 label: "Track",
-// //                 value: formatTrack(enrollment.learning_track),
-// //                 color: "text-accent",
-// //               },
-// //               {
-// //                 icon: Target,
-// //                 label: "Mode",
-// //                 value: formatMode(enrollment.learning_mode),
-// //                 color: "text-accent",
-// //               },
-// //               {
-// //                 icon: CalendarDays,
-// //                 label: enrollment.access_type === "free" ? "Days Left" : "Access",
-// //                 value:
-// //                   enrollment.access_type === "free"
-// //                     ? daysRemaining !== null
-// //                       ? `${daysRemaining} day${daysRemaining !== 1 ? "s" : ""}`
-// //                       : "—"
-// //                     : "Paid Program",
-// //                 color: isExpired ? "text-destructive" : "text-accent",
-// //               },
-// //             ].map((s, i) => (
-// //               <motion.div
-// //                 key={s.label}
-// //                 custom={i}
-// //                 initial="hidden"
-// //                 animate="visible"
-// //                 variants={fadeUp}
-// //                 className="rounded-xl border border-border bg-card p-5 shadow-sm"
-// //               >
-// //                 <div className="flex items-center gap-3">
-// //                   <s.icon className={`h-5 w-5 ${s.color}`} />
-// //                   <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-// //                     {s.label}
-// //                   </span>
-// //                 </div>
-// //                 <p className="mt-2 font-display text-xl font-bold text-foreground">{s.value}</p>
-// //               </motion.div>
-// //             ))}
-// //           </div>
-
-// //           {/* Profile & Details */}
-// //           <div className="mt-8 grid gap-6 lg:grid-cols-2">
-// //             {/* Profile Info */}
-// //             <motion.div
-// //               custom={4}
-// //               initial="hidden"
-// //               animate="visible"
-// //               variants={fadeUp}
-// //               className="rounded-xl border border-border bg-card p-6 shadow-sm"
-// //             >
-// //               <h3 className="flex items-center gap-2 font-display text-lg font-semibold text-foreground">
-// //                 <User className="h-5 w-5 text-accent" /> Profile
-// //               </h3>
-// //               <div className="mt-4 space-y-3">
-// //                 <InfoRow label="Name" value={profile?.full_name || "—"} />
-// //                 <InfoRow label="Email" value={profile?.email || user?.email || "—"} />
-// //                 <InfoRow label="Country" value={profile?.country || "—"} />
-// //                 <InfoRow
-// //                   label="Access Type"
-// //                   value={
-// //                     <Badge variant={enrollment.access_type === "paid" ? "default" : "secondary"}>
-// //                       {enrollment.access_type === "paid" ? "Paid" : "Free Trial"}
-// //                     </Badge>
-// //                   }
-// //                 />
-// //               </div>
-// //             </motion.div>
-
-// //             {/* Tech & Commitment */}
-// //             <motion.div
-// //               custom={5}
-// //               initial="hidden"
-// //               animate="visible"
-// //               variants={fadeUp}
-// //               className="rounded-xl border border-border bg-card p-6 shadow-sm"
-// //             >
-// //               <h3 className="flex items-center gap-2 font-display text-lg font-semibold text-foreground">
-// //                 <Monitor className="h-5 w-5 text-accent" /> Tech & Commitment
-// //               </h3>
-// //               <div className="mt-4 space-y-3">
-// //                 <InfoRow
-// //                   label="Experience"
-// //                   value={formatExperience(techBackground?.experience_level)}
-// //                 />
-// //                 <InfoRow label="Device" value={formatDevice(techBackground?.device)} />
-// //                 <InfoRow
-// //                   label="Internet"
-// //                   value={
-// //                     <span className="flex items-center gap-1.5">
-// //                       <Wifi className="h-3.5 w-3.5" />
-// //                       {formatInternet(techBackground?.internet_quality)}
-// //                     </span>
-// //                   }
-// //                 />
-// //                 <InfoRow
-// //                   label="Hours/Week"
-// //                   value={commitment?.hours_per_week ? `${commitment.hours_per_week}h` : "—"}
-// //                 />
-// //                 <InfoRow
-// //                   label="Goal"
-// //                   value={formatGoal(commitment?.learning_goal)}
-// //                 />
-// //               </div>
-// //             </motion.div>
-// //           </div>
-
-// //           {/* Learning Hub — Courses for paid, upgrade prompt for free */}
-// //           <motion.div
-// //             custom={6}
-// //             initial="hidden"
-// //             animate="visible"
-// //             variants={fadeUp}
-// //             className="mt-8"
-// //           >
-// //             <h3 className="flex items-center gap-2 font-display text-xl font-semibold text-foreground">
-// //               <GraduationCap className="h-5 w-5 text-accent" /> Your Courses
-// //             </h3>
-
-// //             {enrollment.access_type === "paid" && !isLocked ? (
-// //               <div className="mt-4">
-// //                 <p className="text-sm text-muted-foreground mb-4">
-// //                   Your {formatTrack(enrollment.learning_track)} track curriculum:
-// //                 </p>
-// //                 <CourseList track={enrollment.learning_track} />
-// //               </div>
-// //             ) : (
-// //               <div className="mt-4 rounded-xl border border-border bg-card p-8 text-center shadow-sm">
-// //                 <Lock className="mx-auto h-10 w-10 text-muted-foreground" />
-// //                 <h4 className="mt-4 font-display text-lg font-semibold text-foreground">
-// //                   {enrollment.access_type === "free"
-// //                     ? "Courses Available on Paid Plan"
-// //                     : "Complete Payment to Unlock"}
-// //                 </h4>
-// //                 <p className="mt-2 max-w-md mx-auto text-sm text-muted-foreground">
-// //                   {enrollment.access_type === "free"
-// //                     ? "Upgrade to a paid plan to access your full track curriculum with structured courses, projects, and mentorship."
-// //                     : "Your payment is pending. Complete it to unlock all course materials."}
-// //                 </p>
-// //                 <Button
-// //                   variant="secondary"
-// //                   size="sm"
-// //                   className="mt-5 gap-1.5"
-// //                   disabled={paymentLoading}
-// //                   onClick={initializePayment}
-// //                 >
-// //                   <CreditCard className="h-4 w-4" />
-// //                   {paymentLoading ? "Processing…" : `Upgrade — ₦${amount.toLocaleString()}`}
-// //                 </Button>
-// //               </div>
-// //             )}
-// //           </motion.div>
-
-// //           {/* Quick Links */}
-// //           <motion.div
-// //             custom={7}
-// //             initial="hidden"
-// //             animate="visible"
-// //             variants={fadeUp}
-// //             className="mt-8 grid gap-4 sm:grid-cols-3"
-// //           >
-// //             {[
-// //               {
-// //                 icon: Target,
-// //                 title: "Progress Tracker",
-// //                 desc: "Track your weekly milestones.",
-// //                 locked: isLocked || enrollment.access_type === "free",
-// //               },
-// //               {
-// //                 icon: Globe,
-// //                 title: "Community",
-// //                 desc: "Connect with fellow learners.",
-// //                 locked: isLocked || enrollment.access_type === "free",
-// //               },
-// //               {
-// //                 icon: BookOpen,
-// //                 title: "Resources",
-// //                 desc: "Guides, cheatsheets & tools.",
-// //                 locked: isLocked || enrollment.access_type === "free",
-// //               },
-// //             ].map((card) => (
-// //               <div
-// //                 key={card.title}
-// //                 className={`relative rounded-xl border border-border bg-card p-6 shadow-sm ${
-// //                   card.locked ? "opacity-60" : ""
-// //                 }`}
-// //               >
-// //                 {card.locked && (
-// //                   <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-card/80 backdrop-blur-sm">
-// //                     <Lock className="mx-auto h-5 w-5 text-muted-foreground" />
-// //                   </div>
-// //                 )}
-// //                 <card.icon className="h-7 w-7 text-accent" />
-// //                 <h4 className="mt-3 font-display text-sm font-semibold text-foreground">{card.title}</h4>
-// //                 <p className="mt-1 text-xs text-muted-foreground">{card.desc}</p>
-// //               </div>
-// //             ))}
-// //           </motion.div>
-// //         </div>
-// //       </section>
-// //     </Layout>
-// //   );
-// // };
-
-// // /* ── Helpers ── */
-
-// // const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
-// //   <div className="flex items-center justify-between text-sm">
-// //     <span className="text-muted-foreground">{label}</span>
-// //     <span className="font-medium text-foreground">{value}</span>
-// //   </div>
-// // );
-
-// // const formatTrack = (t?: string) => {
-// //   const map: Record<string, string> = {
-// //     frontend: "Frontend",
-// //     backend: "Backend",
-// //     fullstack: "Full-Stack",
-// //     foundation: "Foundation",
-// //   };
-// //   return map[t || ""] || t || "—";
-// // };
-
-// // const formatMode = (m?: string) => {
-// //   const map: Record<string, string> = {
-// //     self_paced: "Self-Paced",
-// //     live: "Live Instructor",
-// //     mentorship: "Mentorship",
-// //     project: "Project-Based",
-// //     hybrid: "Hybrid",
-// //   };
-// //   return map[m || ""] || m || "—";
-// // };
-
-// // const formatExperience = (e?: string) => {
-// //   const map: Record<string, string> = { none: "None", beginner: "Beginner", intermediate: "Intermediate" };
-// //   return map[e || ""] || e || "—";
-// // };
-
-// // const formatDevice = (d?: string) => {
-// //   const map: Record<string, string> = { laptop: "Laptop/Desktop", mobile: "Mobile", both: "Both" };
-// //   return map[d || ""] || d || "—";
-// // };
-
-// // const formatInternet = (q?: string) => {
-// //   const map: Record<string, string> = { poor: "Poor", fair: "Fair", good: "Good" };
-// //   return map[q || ""] || q || "—";
-// // };
-
-// // const formatGoal = (g?: string) => {
-// //   const map: Record<string, string> = {
-// //     job: "Get a Job",
-// //     freelancing: "Freelancing",
-// //     projects: "Build Projects",
-// //     improvement: "Self Improvement",
-// //   };
-// //   return map[g || ""] || g || "—";
-// // };
-
-// // export default DashboardPage;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { useEffect } from "react";
-// import { Link, useSearchParams } from "react-router-dom";
-// import { motion } from "framer-motion";
-// import Layout from "@/components/Layout";
-// import { useLearnerData } from "@/hooks/useLearnerData";
-// import { useAuth } from "@/hooks/useAuth";
-// import { usePayment } from "@/hooks/usePayment";
-// import CourseList from "@/components/dashboard/CourseList";
-// import { Badge } from "@/components/ui/badge";
-// import { Button } from "@/components/ui/button";
-// import {
-//   BookOpen,
-//   GraduationCap,
-//   Target,
-//   CalendarDays,
-//   AlertTriangle,
-//   Lock,
-//   Globe,
-//   Zap,
-//   Crown,
-// } from "lucide-react";
-
-// const DashboardPage = () => {
-//   const { user } = useAuth();
-//   const {
-//     profile,
-//     enrollment,
-//     loading,
-//     isExpired,
-//     daysRemaining,
-//     refetch,
-//   } = useLearnerData();
-
-//   const {
-//     initializePayment,
-//     verifyPayment,
-//     loading: paymentLoading,
-//     amount,
-//   } = usePayment();
-
-//   const [searchParams, setSearchParams] = useSearchParams();
-
-//   /* ---------------- PAYMENT VERIFICATION ---------------- */
-//   useEffect(() => {
-//     const shouldVerify = searchParams.get("verify_payment");
-//     const reference =
-//       searchParams.get("reference") || searchParams.get("trxref");
-
-//     if (shouldVerify && reference) {
-//       searchParams.delete("verify_payment");
-//       searchParams.delete("reference");
-//       searchParams.delete("trxref");
-//       setSearchParams(searchParams, { replace: true });
-
-//       verifyPayment(reference).then((ok) => {
-//         if (ok) refetch();
-//       });
-//     }
-//   }, []);
-
-//   /* ---------------- LOADING STATE ---------------- */
-//   if (loading) {
-//     return (
-//       <Layout>
-//         <div className="flex min-h-[60vh] items-center justify-center">
-//           <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
-//         </div>
-//       </Layout>
-//     );
-//   }
-
-//   /* ---------------- NO ENROLLMENT ---------------- */
-//   if (!enrollment) {
-//     return (
-//       <Layout>
-//         <div className="flex min-h-[60vh] items-center justify-center text-center">
-//           <div>
-//             <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground" />
-//             <h2 className="mt-4 text-2xl font-bold">
-//               Complete Your Application
-//             </h2>
-//             <Link to="/onboarding">
-//               <Button className="mt-6">Start Onboarding</Button>
-//             </Link>
-//           </div>
-//         </div>
-//       </Layout>
-//     );
-//   }
-
-//   /* ---------------- ACCESS LOGIC ---------------- */
-//   const isTrial = enrollment.access_type === "free";
-//   const trialExpired = isTrial && isExpired;
-//   const isPaid =
-//     enrollment.access_type === "paid" &&
-//     enrollment.status === "active";
-
-//   const showUrgency =
-//     isTrial &&
-//     daysRemaining !== null &&
-//     daysRemaining <= 2 &&
-//     !trialExpired;
-
-//   return (
-//     <Layout>
-//       <section className="py-10 bg-background">
-//         <div className="container mx-auto px-4">
-
-//           {/* HEADER */}
-//           <div className="mb-8 flex items-center justify-between">
-//             <div>
-//               <h1 className="text-3xl font-bold">
-//                 Welcome,{" "}
-//                 {profile?.full_name || user?.email?.split("@")[0]}
-//               </h1>
-//               <p className="text-muted-foreground">
-//                 Your structured learning hub
-//               </p>
-//             </div>
-
-//             {isPaid && (
-//               <Badge className="gap-1 bg-accent text-white">
-//                 <Crown className="h-4 w-4" />
-//                 Premium Member
-//               </Badge>
-//             )}
-//           </div>
-
-//           {/* ACTIVE TRIAL BANNER */}
-//           {isTrial && !trialExpired && (
-//             <motion.div
-//               initial={{ opacity: 0 }}
-//               animate={{ opacity: 1 }}
-//               className={`mb-6 rounded-xl p-4 border ${
-//                 showUrgency
-//                   ? "border-amber-500 bg-amber-50"
-//                   : "border-border bg-card"
-//               }`}
-//             >
-//               <div className="flex justify-between items-center">
-//                 <div>
-//                   <p className="font-semibold">
-//                     Free Trial • {daysRemaining} day
-//                     {daysRemaining !== 1 ? "s" : ""} remaining
-//                   </p>
-//                   <p className="text-sm text-muted-foreground">
-//                     Upgrade anytime to unlock full curriculum, projects and mentorship.
-//                   </p>
-//                 </div>
-
-//                 <Button
-//                   size="sm"
-//                   disabled={paymentLoading}
-//                   onClick={initializePayment}
-//                 >
-//                   {paymentLoading
-//                     ? "Processing…"
-//                     : `Upgrade — ₦${amount.toLocaleString()}`}
-//                 </Button>
-//               </div>
-//             </motion.div>
-//           )}
-
-//           {/* EXPIRED TRIAL */}
-//           {trialExpired && (
-//             <div className="mb-6 rounded-xl border border-destructive bg-destructive/5 p-6 text-center">
-//               <AlertTriangle className="mx-auto h-6 w-6 text-destructive" />
-//               <p className="mt-2 font-semibold text-destructive">
-//                 Your Free Trial Has Ended
-//               </p>
-//               <Button
-//                 className="mt-4"
-//                 onClick={initializePayment}
-//               >
-//                 Upgrade to Continue — ₦{amount.toLocaleString()}
-//               </Button>
-//             </div>
-//           )}
-
-//           {/* STATS */}
-//           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-//             <StatCard
-//               label="Track"
-//               value={enrollment.learning_track}
-//               icon={BookOpen}
-//             />
-//             <StatCard
-//               label="Mode"
-//               value={enrollment.learning_mode}
-//               icon={Target}
-//             />
-//             <StatCard
-//               label="Access"
-//               value={isPaid ? "Paid Program" : "Free Trial"}
-//               icon={Zap}
-//             />
-//             <StatCard
-//               label="Days Left"
-//               value={
-//                 isTrial
-//                   ? daysRemaining !== null
-//                     ? `${daysRemaining}`
-//                     : "—"
-//                   : "Unlimited"
-//               }
-//               icon={CalendarDays}
-//             />
-//           </div>
-
-//           {/* COURSES */}
-//           <div className="mt-10">
-//             <h3 className="text-xl font-semibold flex items-center gap-2">
-//               <GraduationCap className="h-5 w-5 text-accent" />
-//               Your Courses
-//             </h3>
-
-//             <CourseList
-//               track={enrollment.learning_track}
-//               accessType={enrollment.access_type}
-//               isTrialExpired={trialExpired}
-//             />
-//           </div>
-
-//           {/* PREMIUM FEATURES */}
-//           <div className="mt-10 grid gap-4 sm:grid-cols-3">
-//             <QuickCard
-//               icon={Target}
-//               title="Progress Tracker"
-//               desc="Track weekly milestones"
-//               locked={!isPaid}
-//             />
-//             <QuickCard
-//               icon={Globe}
-//               title="Community"
-//               desc="Connect with learners"
-//               locked={!isPaid}
-//             />
-//             <QuickCard
-//               icon={BookOpen}
-//               title="Resources"
-//               desc="Guides & cheatsheets"
-//               locked={!isPaid}
-//             />
-//           </div>
-
-//         </div>
-//       </section>
-//     </Layout>
-//   );
-// };
-
-// /* ---------- COMPONENTS ---------- */
-
-// const StatCard = ({ label, value, icon: Icon }: any) => (
-//   <div className="rounded-xl border bg-card p-5 shadow-sm">
-//     <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase">
-//       <Icon className="h-4 w-4 text-accent" />
-//       {label}
-//     </div>
-//     <p className="mt-2 text-lg font-bold capitalize">{value}</p>
-//   </div>
-// );
-
-// const QuickCard = ({ icon: Icon, title, desc, locked }: any) => (
-//   <div
-//     className={`relative rounded-xl border bg-card p-6 shadow-sm ${
-//       locked ? "opacity-60" : ""
-//     }`}
-//   >
-//     {locked && (
-//       <div className="absolute inset-0 flex items-center justify-center backdrop-blur-sm bg-card/70 rounded-xl">
-//         <Lock className="h-5 w-5 text-muted-foreground" />
-//       </div>
-//     )}
-//     <Icon className="h-6 w-6 text-accent" />
-//     <h4 className="mt-3 font-semibold">{title}</h4>
-//     <p className="text-xs text-muted-foreground">{desc}</p>
-//   </div>
-// );
-
-// export default DashboardPage;
-
-
-
-
-
-
-
-
-
-
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import { useLearnerData } from "@/hooks/useLearnerData";
 import { useAuth } from "@/hooks/useAuth";
 import { usePayment } from "@/hooks/usePayment";
-import CourseList from "@/components/dashboard/CourseList";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -749,12 +13,14 @@ import {
   Target,
   CalendarDays,
   AlertTriangle,
-  Lock,
-  Globe,
+  Settings,
   Zap,
   Crown,
   Clock,
-  ShieldAlert,
+  Sparkles,
+  PartyPopper,
+  X,
+  Lock,
 } from "lucide-react";
 
 const DashboardPage = () => {
@@ -776,6 +42,19 @@ const DashboardPage = () => {
   } = usePayment();
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const [showCongrats, setShowCongrats] = useState(false);
+
+  // Check if user was just activated (paid account)
+  useEffect(() => {
+    if (enrollment?.access_type === "paid" && enrollment?.status === "active") {
+      const hasSeenCongrats = localStorage.getItem(`congrats_shown_${user?.id}`);
+      if (!hasSeenCongrats) {
+        setShowCongrats(true);
+        localStorage.setItem(`congrats_shown_${user?.id}`, "true");
+        setTimeout(() => setShowCongrats(false), 10000);
+      }
+    }
+  }, [enrollment, user]);
 
   /* ---------------- PAYMENT VERIFICATION ---------------- */
   useEffect(() => {
@@ -832,72 +111,114 @@ const DashboardPage = () => {
   const isActive = enrollment.status === "active";
 
   // 4 States:
-  const isFreeActive = isFree && isActive && !isExpired; // Trial active
-  const isFreeExpired = isFree && isExpired; // Trial ended
-  const isPaidLocked = isPaid && isLocked; // Awaiting approval
-  const isPaidActive = isPaid && isActive; // Full access
+  const isFreeActive = isFree && isActive && !isExpired;
+  const isFreeExpired = isFree && isExpired;
+  const isPaidLocked = isPaid && isLocked;
+  const isPaidActive = isPaid && isActive;
 
-  const showUrgency =
-    isFreeActive && daysRemaining !== null && daysRemaining <= 2;
-
-  const canAccessCourses = isFreeActive || isPaidActive;
+  const showUrgency = isFreeActive && daysRemaining !== null && daysRemaining <= 2;
 
   return (
     <Layout>
-      <section className="py-10 bg-background">
-        <div className="container mx-auto px-4">
+      <section className="py-10 bg-gradient-to-b from-background to-muted/20 min-h-screen">
+        <div className="container mx-auto px-4 max-w-6xl">
+          
+          {/* CONGRATULATIONS BANNER - Newly Activated Paid Account */}
+          {showCongrats && isPaidActive && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-6 rounded-2xl border-2 border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 p-8 text-center relative overflow-hidden"
+            >
+              <button
+                onClick={() => setShowCongrats(false)}
+                className="absolute top-4 right-4 text-green-700 hover:text-green-900"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900 mb-4">
+                <PartyPopper className="h-8 w-8 text-green-600" />
+              </div>
+              
+              <h2 className="text-2xl font-bold text-green-900 dark:text-green-100 mb-2">
+                🎉 Payment Successful! 🎉
+              </h2>
+              <p className="text-green-700 dark:text-green-300 mb-4">
+                You now have premium access to all courses, materials, and unlimited learning!
+              </p>
+              <div className="flex items-center justify-center gap-2 text-sm text-green-600 dark:text-green-400">
+                <Crown className="h-4 w-4" />
+                <span className="font-medium">Welcome to Premium!</span>
+              </div>
+            </motion.div>
+          )}
+
           {/* HEADER */}
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold">
-                Welcome,{" "}
-                {profile?.full_name || user?.email?.split("@")[0]}
+                Welcome back, {profile?.full_name || user?.email?.split("@")[0]}! 👋
               </h1>
-              <p className="text-muted-foreground">
-                Your structured learning hub
+              <p className="text-muted-foreground mt-1">
+                Ready to continue your learning journey?
               </p>
             </div>
 
-            {isPaidActive && (
-              <Badge className="gap-1 bg-accent text-white">
-                <Crown className="h-4 w-4" />
-                Premium Member
-              </Badge>
-            )}
+            <div className="flex items-center gap-3">
+              {isPaidActive && (
+                <Badge className="gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2">
+                  <Crown className="h-4 w-4" />
+                  Premium
+                </Badge>
+              )}
+              <Link to="/settings">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* STATE 1: ACTIVE FREE TRIAL */}
           {isFreeActive && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className={`mb-6 rounded-xl p-4 border ${
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mb-6 rounded-2xl p-6 border-2 ${
                 showUrgency
-                  ? "border-amber-500 bg-amber-50 dark:bg-amber-950"
-                  : "border-border bg-card"
+                  ? "border-amber-500 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50"
+                  : "border-accent/30 bg-gradient-to-r from-accent/5 to-accent/10"
               }`}
             >
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-semibold flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Free Trial • {daysRemaining} day
-                    {daysRemaining !== 1 ? "s" : ""} remaining
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Upgrade anytime to unlock full curriculum, projects and
-                    mentorship.
-                  </p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-sm">
+                    <Sparkles className="h-6 w-6 text-accent" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-lg flex items-center gap-2">
+                      <Clock className="h-5 w-5" />
+                      Free Trial • {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} remaining
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {showUrgency 
+                        ? "⚡ Act fast! Upgrade now to keep your progress and unlock everything."
+                        : "Upgrade anytime to unlock all courses, materials, and premium features."}
+                    </p>
+                  </div>
                 </div>
 
                 <Button
-                  size="sm"
+                  size="lg"
                   disabled={paymentLoading}
                   onClick={initializePayment}
+                  className="gap-2 whitespace-nowrap"
                 >
-                  {paymentLoading
-                    ? "Processing…"
-                    : `Upgrade — ₦${amount.toLocaleString()}`}
+                  {paymentLoading ? "Processing…" : `Upgrade - ₦${amount.toLocaleString()}`}
+                  <Zap className="h-4 w-4" />
                 </Button>
               </div>
             </motion.div>
@@ -905,151 +226,150 @@ const DashboardPage = () => {
 
           {/* STATE 2: EXPIRED TRIAL */}
           {isFreeExpired && (
-            <div className="mb-6 rounded-xl border border-destructive bg-destructive/5 p-6 text-center">
-              <AlertTriangle className="mx-auto h-6 w-6 text-destructive" />
-              <p className="mt-2 font-semibold text-destructive">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 rounded-2xl border-2 border-destructive bg-gradient-to-r from-destructive/5 to-destructive/10 p-8 text-center"
+            >
+              <AlertTriangle className="mx-auto h-12 w-12 text-destructive" />
+              <h3 className="mt-4 text-xl font-bold text-destructive">
                 Your Free Trial Has Ended
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Upgrade now to continue your learning journey
+              </h3>
+              <p className="mt-2 text-muted-foreground">
+                Upgrade to premium now to continue your learning journey and access all courses
               </p>
               <Button
-                className="mt-4"
+                size="lg"
+                className="mt-6 gap-2"
                 disabled={paymentLoading}
                 onClick={initializePayment}
               >
-                {paymentLoading
-                  ? "Processing…"
-                  : `Upgrade to Continue — ₦${amount.toLocaleString()}`}
+                {paymentLoading ? "Processing…" : `Upgrade Now - ₦${amount.toLocaleString()}`}
+                <Crown className="h-4 w-4" />
               </Button>
-            </div>
+            </motion.div>
           )}
 
-          {/* STATE 3: PAID BUT LOCKED (Awaiting Admin Approval) */}
+          {/* STATE 3: PAID BUT LOCKED (Need to Pay) */}
           {isPaidLocked && (
-            <div className="mb-6 rounded-xl border border-amber-500 bg-amber-50 dark:bg-amber-950 p-6 text-center">
-              <Clock className="mx-auto h-6 w-6 text-amber-600" />
-              <p className="mt-2 font-semibold text-amber-900 dark:text-amber-100">
-                Application Under Review
-              </p>
-              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                Your paid program application is being reviewed by our admin
-                team. You'll receive access within 24-48 hours.
-              </p>
-              <div className="mt-4 flex items-center justify-center gap-2 text-xs text-amber-600 dark:text-amber-400">
-                <ShieldAlert className="h-4 w-4" />
-                Check back soon or contact support if you have questions
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 rounded-2xl border-2 border-amber-500 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50 p-8 text-center"
+            >
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900">
+                <Lock className="h-8 w-8 text-amber-600" />
               </div>
-            </div>
+              <h3 className="mt-4 text-xl font-bold text-amber-900 dark:text-amber-100">
+                Unlock Premium Access 🔓
+              </h3>
+              <p className="mt-2 text-amber-700 dark:text-amber-300 max-w-md mx-auto">
+                Upgrade to premium to unlock all courses, materials, and lifetime access to everything!
+              </p>
+              <Button
+                size="lg"
+                className="mt-6 gap-2"
+                disabled={paymentLoading}
+                onClick={initializePayment}
+              >
+                {paymentLoading ? "Processing…" : `Upgrade to Premium - ₦${amount.toLocaleString()}`}
+                <Crown className="h-4 w-4" />
+              </Button>
+            </motion.div>
           )}
 
-          {/* STATE 4: PAID AND ACTIVE - No banner needed, just premium badge */}
-
-          {/* STATS */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* STATS CARDS */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
             <StatCard
               label="Track"
-              value={enrollment.learning_track}
+              value={enrollment.learning_track || "Foundation"}
               icon={BookOpen}
+              gradient="from-blue-500/10 to-cyan-500/10"
             />
             <StatCard
               label="Mode"
-              value={enrollment.learning_mode}
+              value={enrollment.learning_mode || "Self-Paced"}
               icon={Target}
+              gradient="from-purple-500/10 to-pink-500/10"
             />
             <StatCard
               label="Access"
               value={
                 isPaidActive
-                  ? "Paid Program"
+                  ? "Premium"
                   : isPaidLocked
-                  ? "Pending Approval"
+                  ? "Locked"
                   : "Free Trial"
               }
               icon={Zap}
+              gradient="from-orange-500/10 to-red-500/10"
             />
             <StatCard
-              label="Days Left"
+              label="Time Left"
               value={
                 isFree && daysRemaining !== null
-                  ? `${daysRemaining}`
+                  ? `${daysRemaining} days`
                   : isPaidActive
                   ? "Unlimited"
-                  : "Pending"
+                  : "Upgrade"
               }
               icon={CalendarDays}
+              gradient="from-green-500/10 to-emerald-500/10"
             />
           </div>
 
-          {/* COURSES */}
-          <div className="mt-10">
-            <h3 className="text-xl font-semibold flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-accent" />
-              Your Courses
-            </h3>
-
-            <CourseList
-              track={enrollment.learning_track}
-              accessType={enrollment.access_type}
-              isTrialExpired={isFreeExpired}
-              isLocked={isPaidLocked}
-              canAccess={canAccessCourses}
-            />
-          </div>
-
-          {/* PREMIUM FEATURES */}
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            <QuickCard
-              icon={Target}
-              title="Progress Tracker"
-              desc="Track weekly milestones"
-              locked={!isPaidActive}
-            />
-            <QuickCard
-              icon={Globe}
-              title="Community"
-              desc="Connect with learners"
-              locked={!isPaidActive}
-            />
-            <QuickCard
-              icon={BookOpen}
-              title="Resources"
-              desc="Guides & cheatsheets"
-              locked={!isPaidActive}
-            />
-          </div>
+          {/* COURSES SECTION - Only show if active (free or paid) */}
+          {isPaidActive || isFreeActive ? (
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <h3 className="text-xl font-semibold flex items-center gap-2 mb-4">
+                <GraduationCap className="h-5 w-5 text-accent" />
+                Your Courses
+              </h3>
+              <div className="text-center py-12 text-muted-foreground">
+                <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Courses will appear here once your instructor adds them</p>
+                <p className="text-sm mt-2">
+                  {isFreeActive && "Free trial: Access to first 5 modules"}
+                  {isPaidActive && "Premium: Full access to all courses"}
+                </p>
+              </div>
+            </div>
+          ) : (
+            /* LOCKED STATE - Show upgrade message */
+            <div className="rounded-2xl border border-border bg-card p-12 text-center">
+              <Lock className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                {isFreeExpired ? "Trial Expired - Courses Locked" : "Upgrade to Access Courses"}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {isFreeExpired
+                  ? "Your free trial has ended. Upgrade to premium to continue learning."
+                  : "Unlock all courses and materials by upgrading to premium."}
+              </p>
+              <Button
+                onClick={initializePayment}
+                disabled={paymentLoading}
+                className="gap-2"
+              >
+                {paymentLoading ? "Processing…" : `Upgrade to Premium - ₦${amount.toLocaleString()}`}
+                <Crown className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </section>
     </Layout>
   );
 };
 
-/* ---------- COMPONENTS ---------- */
-
-const StatCard = ({ label, value, icon: Icon }: any) => (
-  <div className="rounded-xl border bg-card p-5 shadow-sm">
-    <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase">
+/* ---------- STAT CARD COMPONENT ---------- */
+const StatCard = ({ label, value, icon: Icon, gradient }: any) => (
+  <div className={`rounded-xl border bg-gradient-to-br ${gradient} p-5 shadow-sm`}>
+    <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase font-medium mb-2">
       <Icon className="h-4 w-4 text-accent" />
       {label}
     </div>
-    <p className="mt-2 text-lg font-bold capitalize">{value}</p>
-  </div>
-);
-
-const QuickCard = ({ icon: Icon, title, desc, locked }: any) => (
-  <div
-    className={`relative rounded-xl border bg-card p-6 shadow-sm ${
-      locked ? "opacity-60" : ""
-    }`}
-  >
-    {locked && (
-      <div className="absolute inset-0 flex items-center justify-center backdrop-blur-sm bg-card/70 rounded-xl">
-        <Lock className="h-5 w-5 text-muted-foreground" />
-      </div>
-    )}
-    <Icon className="h-6 w-6 text-accent" />
-    <h4 className="mt-3 font-semibold">{title}</h4>
-    <p className="text-xs text-muted-foreground">{desc}</p>
+    <p className="text-xl font-bold capitalize">{value}</p>
   </div>
 );
 

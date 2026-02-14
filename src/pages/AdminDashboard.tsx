@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import { useAdminData, type LearnerRow } from "@/hooks/useAdminData";
@@ -33,6 +34,7 @@ import {
   UserX,
   Sparkles,
   DollarSign,
+  BookOpen,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -102,12 +104,22 @@ const AdminDashboard = () => {
 
           {/* Header Stats */}
           <div className="mb-8 rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-6 text-primary-foreground shadow-lg">
-            <div className="flex items-center gap-3">
-              <Shield className="h-6 w-6" />
-              <div>
-                <h1 className="font-display text-2xl font-bold">Admin Control Panel</h1>
-                <p className="text-sm opacity-80">Platform analytics & learner oversight</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Shield className="h-6 w-6" />
+                <div>
+                  <h1 className="font-display text-2xl font-bold">Admin Control Panel</h1>
+                  <p className="text-sm opacity-80">Platform analytics & learner oversight</p>
+                </div>
               </div>
+              
+              {/* COURSES LINK ADDED HERE */}
+              <Link to="/admin/courses">
+                <Button variant="secondary" className="gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Manage Courses
+                </Button>
+              </Link>
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">

@@ -20,57 +20,118 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const clearAuthState = () => {
+    setUser(null);
+    setSession(null);
+    setIsAdmin(false);
+  };
+
   const fetchAdminStatus = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    setIsAdmin(!!data);
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching admin status:", error);
+        setIsAdmin(false);
+        return;
+      }
+
+      setIsAdmin(!!data);
+    } catch (error) {
+      console.error("Error in fetchAdminStatus:", error);
+      setIsAdmin(false);
+    }
   };
 
   useEffect(() => {
+    // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
+      console.log("Initial session check:", session ? "exists" : "none");
+      
       if (session?.user) {
+        setSession(session);
+        setUser(session.user);
         await fetchAdminStatus(session.user.id);
+      } else {
+        clearAuthState();
       }
 
       setLoading(false);
+    }).catch((error) => {
+      console.error("Error getting session:", error);
+      clearAuthState();
+      setLoading(false);
     });
 
-    const { data: { subscription } } =
-      supabase.auth.onAuthStateChange(async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("Auth event:", event, "Session:", session ? "exists" : "none");
 
-        if (session?.user) {
+        if (event === "SIGNED_OUT") {
+          console.log("User signed out - clearing state");
+          clearAuthState();
+        } else if (event === "SIGNED_IN" && session?.user) {
+          console.log("User signed in");
+          setSession(session);
+          setUser(session.user);
           await fetchAdminStatus(session.user.id);
-        } else {
-          setIsAdmin(false);
+        } else if (event === "TOKEN_REFRESHED" && session?.user) {
+          console.log("Token refreshed");
+          setSession(session);
+          setUser(session.user);
+        } else if (!session) {
+          console.log("No session - clearing state");
+          clearAuthState();
         }
 
         setLoading(false);
-      });
+      }
+    );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log("Cleaning up auth subscription");
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    return { error: error as Error | null };
+    try {
+      const { error } = await supabase.auth.signUp({ email, password });
+      return { error: error as Error | null };
+    } catch (error) {
+      return { error: error as Error };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error: error as Error | null };
+    } catch (error) {
+      return { error: error as Error };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      console.log("Signing out...");
+      clearAuthState(); // Clear state immediately for instant UI update
+      await supabase.auth.signOut();
+      console.log("Sign out complete");
+      // Force reload to clear any cached data
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Sign out error:", error);
+      // Still clear state and redirect even if sign out fails
+      clearAuthState();
+      window.location.href = "/";
+    }
   };
 
   return (
@@ -95,5 +156,3 @@ export const useAuth = () => {
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };
-
-

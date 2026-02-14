@@ -19,6 +19,10 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Auth from "./pages/Auth";
 import AdminAuthPage from "./pages/AdminAuthPage";
+import Settings from "./pages/Settings";
+import AdminCourses from "./pages/AdminCourses";
+import AdminCourseContent from "./pages/AdminCourseContent";
+import StudentCourseView from "./pages/StudentCourseView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +58,14 @@ const App = () => (
               }
             />
             <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin"
               element={
                 <AdminRoute>
@@ -61,6 +73,33 @@ const App = () => (
                 </AdminRoute>
               }
             />
+            // Admin Routes
+<Route
+  path="/admin/courses"
+  element={
+    <AdminRoute>
+      <AdminCourses />
+    </AdminRoute>
+  }
+/>
+<Route
+  path="/admin/courses/:courseId"
+  element={
+    <AdminRoute>
+      <AdminCourseContent />
+    </AdminRoute>
+  }
+/>
+
+// Student Routes
+<Route
+  path="/courses/:courseId"
+  element={
+    <ProtectedRoute>
+      <StudentCourseView />
+    </ProtectedRoute>
+  }
+/>
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

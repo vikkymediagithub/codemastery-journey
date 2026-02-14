@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Layout from "@/components/Layout";
-import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles, CreditCard } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useOnboardingSubmit, type OnboardingData } from "@/hooks/useOnboardingSubmit";
 
@@ -67,11 +67,17 @@ const OnboardingPage = () => {
   const handleSubmit = async () => {
     setSubmitting(true);
     const ok = await submit(form);
-    if (ok) setSubmitted(true);
+    
+    if (ok) {
+      setSubmitted(true);
+    }
+    
     setSubmitting(false);
   };
 
   if (submitted) {
+    const isPaid = form.accessType === "paid";
+    
     return (
       <Layout>
         <section className="flex min-h-[80vh] items-center justify-center bg-background">
@@ -83,14 +89,17 @@ const OnboardingPage = () => {
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
               <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
             </div>
+            
             <h2 className="font-display text-3xl font-bold text-foreground">
               You're All Set! 🎉
             </h2>
+            
             <p className="mt-4 text-muted-foreground">
-              {form.accessType === "free"
-                ? "Your 7-day free trial starts now. Let's begin learning!"
-                : "We'll review your application and activate your account within 24 hours."}
+              {isPaid 
+                ? "Welcome! Visit your dashboard to explore courses and upgrade to premium access."
+                : "Your 7-day free trial starts now. Let's begin learning!"}
             </p>
+            
             <Button
               size="lg"
               className="mt-8"
@@ -433,13 +442,30 @@ const StepEnrollment = ({ form, update }: StepProps) => (
           </SelectItem>
           <SelectItem value="paid">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>Paid Program (Full Access)</span>
+              <CreditCard className="h-4 w-4" />
+              <span>Paid Program</span>
             </div>
           </SelectItem>
         </SelectContent>
       </Select>
     </div>
+    
+    {form.accessType === "paid" && (
+      <div className="rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 p-4">
+        <div className="flex items-start gap-3">
+          <CreditCard className="h-5 w-5 text-amber-600 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
+              Premium Access
+            </p>
+            <p className="text-amber-700 dark:text-amber-300">
+              You'll need to upgrade to premium from your dashboard to unlock all courses and materials.
+            </p>
+          </div>
+        </div>
+      </div>
+    )}
+    
     <div className="rounded-lg bg-accent/5 border border-accent/20 p-4">
       <div className="flex items-start gap-3">
         <Checkbox
@@ -448,7 +474,7 @@ const StepEnrollment = ({ form, update }: StepProps) => (
           onCheckedChange={(c) => update("agreeTerms", !!c)}
         />
         <Label htmlFor="terms" className="cursor-pointer text-sm leading-relaxed">
-          I understand that free access lasts 7 days. This training is provided
+          I understand that {form.accessType === "free" ? "free access lasts 7 days and I can upgrade anytime" : "I need to upgrade to premium for full access"}. This training is provided
           by an independent educator. Certificates are for portfolio use only.
         </Label>
       </div>

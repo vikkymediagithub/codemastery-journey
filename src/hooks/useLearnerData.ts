@@ -27,31 +27,72 @@ export const useLearnerData = (): LearnerData => {
 
   const fetchData = async () => {
     if (!user) {
+      console.log("No user, clearing learner data");
+      setProfile(null);
+      setEnrollment(null);
+      setTechBackground(null);
+      setCommitment(null);
+      setDiscipline(null);
       setLoading(false);
       return;
     }
 
+    console.log("Fetching learner data for user:", user.id);
     setLoading(true);
 
-    const [profileRes, enrollRes, techRes, commitRes, discRes] = await Promise.all([
-      supabase.from("learner_profiles").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("enrollments").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("tech_background").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("learning_commitment").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("discipline_check").select("*").eq("user_id", user.id).maybeSingle(),
-    ]);
+    try {
+      // Add timeout to prevent infinite loading
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Request timeout")), 10000)
+      );
 
-    setProfile(profileRes.data);
-    setEnrollment(enrollRes.data);
-    setTechBackground(techRes.data);
-    setCommitment(commitRes.data);
-    setDiscipline(discRes.data);
-    setLoading(false);
+      const fetchPromise = Promise.all([
+        supabase.from("learner_profiles").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("enrollments").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("tech_background").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("learning_commitment").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("discipline_check").select("*").eq("user_id", user.id).maybeSingle(),
+      ]);
+
+      const [profileRes, enrollRes, techRes, commitRes, discRes] = await Promise.race([
+        fetchPromise,
+        timeout
+      ]) as any;
+
+      // Log any errors
+      if (profileRes.error) console.error("Profile error:", profileRes.error);
+      if (enrollRes.error) console.error("Enrollment error:", enrollRes.error);
+      if (techRes.error) console.error("Tech error:", techRes.error);
+      if (commitRes.error) console.error("Commitment error:", commitRes.error);
+      if (discRes.error) console.error("Discipline error:", discRes.error);
+
+      setProfile(profileRes.data);
+      setEnrollment(enrollRes.data);
+      setTechBackground(techRes.data);
+      setCommitment(commitRes.data);
+      setDiscipline(discRes.data);
+
+      console.log("Learner data loaded:", {
+        hasProfile: !!profileRes.data,
+        hasEnrollment: !!enrollRes.data
+      });
+
+    } catch (error) {
+      console.error("Error fetching learner data:", error);
+      // Set loading to false even on error to prevent infinite spinner
+      setProfile(null);
+      setEnrollment(null);
+      setTechBackground(null);
+      setCommitment(null);
+      setDiscipline(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchData();
-  }, [user]);
+  }, [user?.id]); // Only re-fetch when user ID changes
 
   const isExpired =
     enrollment?.access_type === "free" &&
