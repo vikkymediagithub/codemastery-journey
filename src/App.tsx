@@ -73,7 +73,7 @@ const App = () => (
                 </AdminRoute>
               }
             />
-            // Admin Routes
+            {/* // Admin Routes */}
 <Route
   path="/admin/courses"
   element={
@@ -91,7 +91,7 @@ const App = () => (
   }
 />
 
-// Student Routes
+{/* // Student Routes */}
 <Route
   path="/courses/:courseId"
   element={
